@@ -1,0 +1,142 @@
+.userInfo{
+    background-color: rgba(226, 234, 235, 1);
+    height: 28%;
+}
+
+.user-information-1{
+    display: flex;
+    height: 80px;
+    margin-bottom: 2px;
+}
+
+.user-information{
+    display: inline-block;
+    width: 85%;
+    /* border: 2px solid black; */
+    margin-left: 7%;
+    margin-right: -22%;
+    margin-top: 4%;
+    height: 60px;
+    flex-direction: column;
+    /* width: 126px; */
+}
+
+.user-image{
+    /* padding: 40px; */
+    border: 3px solid rgba(35, 140, 159, 1);
+    border-radius: 100%;
+    width: 23%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    background-size: cover;
+    button{
+        width: max-content;
+        height: max-content;
+        padding: 5px;
+        margin-left: 17%;
+    }
+    img{
+        width: 78px;
+        height: 78px;
+        position: absolute;
+        display: inline-block;
+        border-radius: 50%;
+    }
+}
+
+.user-status {
+    border: 1px solid white;
+    background: rgba(1, 255, 72, 1);
+    border-radius: 50%;
+    width: 25%;
+    height: 25%;
+    position: relative;
+    display: inline-block;
+    top: -10%;
+    left: -25.5%;
+    transform: translate(239%, 210%);
+}
+
+.user-name{
+    margin-left: 10px;
+    display: flex;
+    align-items: left;
+    justify-content: center;
+    height: 79.2px;
+    width: 80%;
+    flex-direction: column;
+}
+
+.user-name span{
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 25px;
+    color: rgba(35, 140, 159, 1);
+}
+
+.user-icon{
+    display: inline-block; /* Sử dụng Flexbox */
+    flex-direction: row; /* Thiết lập hướng của Flexbox là ngang */
+}
+
+.icon-bell{
+    display: inline-block;
+    margin-right: 7%;
+}
+
+.icon-bell span{
+    font-family: 'Roboto',sans-serif;
+    font-size: 30px;
+    font-weight: 300;
+    line-height: 35.16px;
+    color: rgba(35, 140, 159, 1);
+}
+
+.input-wrapper {
+    position: relative;
+    top:-8.9%;
+    background-color: white;
+    margin-top: 1.8%;
+    display: flex;
+    justify-content: left;
+    border-radius: 20px;
+    align-items: center;
+    border: 1px solid rgba(50, 75, 80, 1);
+    border: 1;
+    height: 50%;
+}
+
+
+.input-wrapper input{
+    background-color: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 300;
+    color: rgba(50, 75, 80, 0.5);
+    font-family: 'Roboto',sans-serif;
+    width: 314px;
+}
+
+.input-wrapper img{
+    padding: 10px;
+}
+
+.input-wrapper input:focus{
+    outline: none;
+}
+
+.custom-file-upload img{
+    width: 78px;
+    height: 78px;
+    position: absolute;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+.custom-file-upload{
+    position: absolute;
+    display: contents;
+}
+

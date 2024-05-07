@@ -23,26 +23,22 @@
 
 .user-image{
     /* padding: 40px; */
-    border: 3px solid rgba(35, 140, 159, 1);
     border-radius: 100%;
-    width: 23%;
-    height: 100%;
+    width: 85px;
+    height: 80px;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     display: flex;
-    background-size: cover;
-    button{
-        width: max-content;
-        height: max-content;
-        padding: 5px;
-        margin-left: 17%;
-    }
+    gap:20px;
+    /* background-size: cover; */
     img{
-        width: 78px;
-        height: 78px;
+        border: 3px solid rgba(35, 140, 159, 1);
+        width: 75px;
+        height: 75px;
         position: absolute;
-        display: inline-block;
+        display: flex;
         border-radius: 50%;
+        object-fit:cover;
     }
 }
 
@@ -50,13 +46,13 @@
     border: 1px solid white;
     background: rgba(1, 255, 72, 1);
     border-radius: 50%;
-    width: 25%;
-    height: 25%;
+    width: 20%;
+    height: 20%;
     position: relative;
     display: inline-block;
     top: -10%;
-    left: -25.5%;
-    transform: translate(239%, 210%);
+    left: -5.5%;
+    transform: translate(356%, 245%);
 }
 
 .user-name{
@@ -127,13 +123,13 @@
     outline: none;
 }
 
-.custom-file-upload img{
-    width: 78px;
+/* .custom-file-upload img{
+    width: 50px;
     height: 78px;
     position: absolute;
     display: inline-block;
     border-radius: 50%;
-}
+} */
 
 .custom-file-upload{
     position: absolute;

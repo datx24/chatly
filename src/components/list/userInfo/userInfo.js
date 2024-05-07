@@ -75,9 +75,8 @@ const UserInfo = () => {
     <div className='userInfo'>
       <div className='user-information'>
         <div className="user-information-1">
-          <button onClick={handleLogout}>Đăng Xuất</button>
           <div className='user-image'>
-            <label htmlFor="fileInput" className="custom-file-upload">
+            
               <input
                 id="fileInput"
                 type="file"
@@ -90,7 +89,7 @@ const UserInfo = () => {
               ) : (
                 <span>Add Image</span>
               )}
-            </label>
+            
             <div className='user-status'></div>
           </div>
           <div className="user-name">

@@ -31,12 +31,20 @@ const Login = ({ setUser, onSignIn }) => {
         photoURL: user.photoURL,
         id: user.uid,
         blocked: [],
+        phoneNumber:'',
+        gender:'',
+        birthDate: '',
         // Add other user data as needed
       });
 
       setValue(user.email);
       localStorage.setItem('email', user.email);
-      setUser({...user, displayName: user.displayName, photoURL: user.photoURL });
+      setUser({...user, 
+        displayName: user.displayName, 
+        photoURL: user.photoURL,
+        phoneNumber: [],
+        birthDate: '',
+        gender: '', });
       onSignIn(); // Notify the parent component that the user has signed in
     } catch (error) {
       console.error('Error signing in with Google:', error);
@@ -47,30 +55,40 @@ const Login = ({ setUser, onSignIn }) => {
     try {
       const result = await signInWithPopup(auth, facebookProvider);
       const user = result.user;
-
+  
       // Upload user's avatar image to Firebase Storage
       const storageRef = ref(storage, 'avatars/' + user.uid);
       const snapshot = await uploadBytes(storageRef, user.photoURL);
       const photoURL = await getDownloadURL(snapshot.ref);
-
+  
       // Add user data to Firestore
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, {
         email: user.email,
         displayName: user.displayName,
-        photoURL: photoURL,
+        photoURL: user.photoURL,
         id: user.uid,
+        blocked: [],
+        phoneNumber:'',
+        gender:'',
+        birthDate: '',
         // Add other user data as needed
       });
-
+  
       setValue(user.email);
       localStorage.setItem('email', user.email);
-      setUser({...user, displayName: user.displayName, photoURL: photoURL });
+      setUser({...user, 
+        displayName: user.displayName, 
+        photoURL: user.photoURL,
+        phoneNumber: [],
+        birthDate: '',
+        gender: '', });
       onSignIn(); // Notify the parent component that the user has signed in
     } catch (error) {
       console.error('Error signing in with Facebook:', error);
     }
   };
+  
 
   return (
       <div className="login">

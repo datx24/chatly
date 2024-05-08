@@ -21,7 +21,7 @@ const AddUser = () => {
 
       const users = querySnapshot.docs.map((doc) => doc.data());
       if (users.length > 0) {
-        const userId = users[0].id;
+        const userId = users.id;
         if (!addedUsers.includes(userId)) { // check if user is already added
           setUser(users[0]);
         } else {
@@ -37,23 +37,27 @@ const AddUser = () => {
   };
 
   const handleAdd = async () => {
-    if (!user ||!currentUser) {
+    if (!user || !currentUser) {
       console.error("User or current user is not available");
       return;
     }
-
+  
     const chatRef = collection(db, "chats");
     const userChatsRef = collection(db, "usersChat");
-
+  
     try {
       const newChatRef = doc(chatRef); // Create a document reference with a unique ID
-
+  
       await setDoc(newChatRef, {
         createdAt: serverTimestamp(),
         messages: [],
       });
-
+  
       if (user.id && currentUser.id) {
+        // Ensure that the documents exist before updating
+        await setDoc(doc(userChatsRef, user.id), { chats: [] });
+        await setDoc(doc(userChatsRef, currentUser.id), { chats: [] });
+  
         await updateDoc(doc(userChatsRef, user.id), {
           chats: arrayUnion({
             chatId: newChatRef.id,
@@ -62,7 +66,7 @@ const AddUser = () => {
             updatedAt: Date.now(),
           }),
         });
-
+  
         await updateDoc(doc(userChatsRef, currentUser.id), {
           chats: arrayUnion({
             chatId: newChatRef.id,
@@ -71,7 +75,7 @@ const AddUser = () => {
             updatedAt: Date.now(),
           }),
         });
-
+  
         setAddedUsers([...addedUsers, user.id]); // add user to addedUsers state
       } else {
         console.error("User ID or Current User ID is undefined");
@@ -80,6 +84,7 @@ const AddUser = () => {
       console.log(err);
     }
   };
+  
 
   return (
     <div className="addUser">

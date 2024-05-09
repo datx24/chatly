@@ -23,23 +23,28 @@ const Chat = () => {
   const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [images, setImages] = useState([]); // Add this state to store multiple images
+  const [latestTextMessage, setLatestTextMessage] = useState(null); // State để lưu trữ tin nhắn văn bản mới nhất
   const storage = getStorage();
+  
+
   const [img, setImg] = useState({
     file: null,
     url: "",
   });
 
   useEffect(() => {
-    const unSub = onSnapshot(
-      doc(db, "chats", chatId),
-      (res) => {
-        setChat(res.data());
-      }
-    );
-    return () => {
-      unSub();
-    };
-  }, [chatId]);
+    if (chatId) {
+      const unSub = onSnapshot(
+        doc(db, "chats", chatId),
+        (res) => {
+          setChat(res.data());
+        }
+      );
+      return () => {
+        unSub();
+      };
+    }
+  }, [chatId]); // Only run the effect when chatId changes
 
   
 
@@ -63,110 +68,109 @@ const Chat = () => {
         const storageRef = ref(storage, `images/${e.target.files[0].name}`);
         await uploadBytes(storageRef, e.target.files[0]);
         const imgUrl = await getDownloadURL(storageRef);
-        
+  
         // Update the images state with the new image
-        // Trong hàm handleImg, sau khi tải ảnh lên thành công, hãy cập nhật trạng thái img và thêm URL của ảnh vào mảng images
-setImages((prevImages) => [
-  ...prevImages,
-  { file: e.target.files[0], url: imgUrl }
-]);
+        setImages((prevImages) => [
+          ...prevImages,
+          { file: e.target.files[0], url: imgUrl }
+        ]);
+  
+        // Add the image URL to Firestore immediately
+        await updateDoc(doc(db, "chats", chatId), {
+          messages: arrayUnion({
+            senderId: currentUser.id,
+            img: imgUrl,
+            createdAt: serverTimestamp(),
+          }),
+        });
       }
     } catch (error) {
       console.error("Error uploading image:", error);
     }
   };
   
-  // Trong hàm handleSend
+  
+  
   const handleSend = async () => {
     try {
-      if (!text.trim() && !img.file) return;
-  
-      let imgUrl = null;
-  
-      // Tải ảnh lên Firestore trước
-      if (img.file) {
-        imgUrl = await upload(img.file);
-        
-        // Lưu URL của ảnh vào sessionStorage
-        sessionStorage.setItem('imageUrl', imgUrl);
+      // Check if there is any text or images to send
+      if (!text.trim() && images.length === 0) return;
+
+      // Array to store URLs of uploaded images
+      const imageUrls = [];
+
+      // Upload images to storage and get their URLs
+      for (const image of images) {
+        const imgUrl = await upload(image.file);
+        imageUrls.push(imgUrl);
       }
-  
-      // Sau đó, gửi tin nhắn
-      const newMessage = {
-        senderId: currentUser.id,
-        text,
-        createdAt: Timestamp.now(),
-        ...(imgUrl && { img: imgUrl }),
-      };
-  
+
+      // Array to store new messages (both text and image messages)
+      const newMessages = [];
+      
+      // Add text message if available
+      if (text.trim()) {
+        newMessages.push({
+          senderId: currentUser.id,
+          text,
+          createdAt: Timestamp.now(),
+        });
+      }
+
+      // Add image messages if available
+      for (const imgUrl of imageUrls) {
+        newMessages.push({
+          senderId: currentUser.id,
+          img: imgUrl,
+          createdAt: Timestamp.now(),
+        });
+      }
+
+      // Update Firestore with the new messages
       await updateDoc(doc(db, "chats", chatId), {
-        messages: arrayUnion(newMessage),
+        messages: arrayUnion(...newMessages),
       });
-  
-      // Update the chat state with the new message
-      setChat((prevChat) => ({
-        ...prevChat,
-        messages: [...prevChat.messages, newMessage],
-      }));
-  
+
+      // Update the chat state with the new messages
+      // Update the chat state with the new messages only if they don't already exist
+      setLatestTextMessage(newMessages.find((message) => message.text)); // Set the latest text message
+
+      // Clear input fields and image state
+      setText("");
+      setImages([]);
+
       // Update userChats in Firestore
       const userChatsRef = doc(db, "usersChat", currentUser.id);
       const userChatsSnapShot = await getDoc(userChatsRef);
-  
+
       if (userChatsSnapShot.exists()) {
         const userChatsData = userChatsSnapShot.data();
         const chatIndex = userChatsData.chats.findIndex((c) => c.chatId === chatId);
-  
+
         if (chatIndex !== -1) {
           userChatsData.chats[chatIndex].lastMessage = text;
           userChatsData.chats[chatIndex].isSeen = currentUser.id === user.id;
           userChatsData.chats[chatIndex].createdAt = Timestamp.now(); // Set timestamp here
-  
+
           await updateDoc(userChatsRef, {
             chats: userChatsData.chats,
           });
         }
       }
-  
-      // Clear input fields and image state if a new message is sent
-      if (!imgUrl) {
-        setImg({
-          file: null,
-          url: "",
-        });
-      }
-      setText("");
-  
-      // Hiển thị thông báo nếu có ảnh được gửi
-      if (imgUrl) {
-        setImages((prevImages) => [
-          ...prevImages,
-          { file: img.file, url: imgUrl }
-        ]);
-      }
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
-  
 
-// Inside useEffect
-useEffect(() => {
-  const fetchImages = async () => {
-    try {
-      const response = await fetch(`/api/chats/${chatId}/images`);
-      const images = await response.json();
-      console.log(images); // Check if images are fetched correctly
-      setImages(images);
-    } catch (error) {
-      console.error("Error fetching images:", error);
-    }
+  
+   // Hàm lọc tin nhắn chỉ hiển thị tin nhắn văn bản
+  const filterTextMessages = (messages) => {
+    return messages.filter((message) => {
+      return message.text && !message.img; // Chỉ lọc ra những tin nhắn có văn bản và không có ảnh
+    });
   };
 
-  if (chatId) {
-    fetchImages();
-  }
-}, [chatId, setImages]); // Ensure setImages is included in the dependency array
+  
 
 
 
@@ -248,44 +252,76 @@ useEffect(() => {
           </div>
         </div>
         <div className="body-child-right-2">
-  {chat?.messages?.map((message, index) => (
-    <div className={message.senderId === currentUser.id ? 'Message own' : 'Message'} key={index}>
-      {/* Display the avatar only for messages sent by others */}
-      {message.senderId !== currentUser.id && <img src={user.photoURL} />}
-      <div className='texts'>
-        <p>{message.text}</p>
-        {/* Display the image if present */}
-        {message.img && <img src={message.img} alt={`image-${index}`} />}
-        {/* Display the timestamp */}
-        {message.createdAt && message.createdAt instanceof Timestamp ? (
-          <span>{moment(message.createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
-        ) : (
-          <span>No timestamp available</span>
-        )}
-      </div>
+          {/* Display the latest text message */}
+          {latestTextMessage && (
+            <div className={latestTextMessage.senderId === currentUser.id ? 'Message own' : 'Message'}>
+              <div className='texts'>
+                <p>{latestTextMessage.text}</p>
+                {/* Display the timestamp */}
+                {latestTextMessage.createdAt && latestTextMessage.createdAt instanceof Timestamp ? (
+                  <span>{moment(latestTextMessage.createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
+                ) : (
+                  <span>No timestamp available</span>
+                )}
+              </div>
+            </div>
+          )}
+
+{chat?.messages?.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()).map((message, index) => (
+  <div className={message.senderId === currentUser.id ? 'Message own' : 'Message'} key={index}>
+    {/* Display the avatar for both sender and receiver */}
+    {message.senderId && (
+      <img src={message.senderId === currentUser.id ? currentUser.photoURL : user.photoURL} alt="Avatar" />
+    )}
+    <div className='texts'>
+      {/* Display the text message if present */}
+      {message.text && !message.img && <p>{message.text}</p>}
+      {/* Display the image if present */}
+      {message.img && !message.text && (
+        <img src={message.img} alt={`image-${index}`} />
+      )}
+      {/* Display both text and image if present */}
+      {message.text && message.img && (
+        <div>
+          {/* Check if the previous message is not an image from the same sender */}
+          {index === 0 || (index > 0 && chat.messages[index - 1].senderId !== currentUser.id && !chat.messages[index - 1].img) ? (
+            <p>{message.text}</p>
+          ) : null}
+          <img src={message.img} alt={`image-${index}`} />
+        </div>
+      )}
+      {/* Display the timestamp */}
+      {message.createdAt && message.createdAt instanceof Timestamp ? (
+        <span>{moment(message.createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
+      ) : (
+        <span>No timestamp available</span>
+      )}
     </div>
-  ))}
-          
-          {images.map((image, index) => (
-    <div className="Message own" key={`image-${index}`}>
-      <div className="texts">
-        <img src={image.url} alt={`image-${index}`} /> {/* Ensure correct URL */}
-      </div>
-    </div>
-  ))}
+  </div>
+))}
 
 
         </div>
         <div className="body-child-right-3">
           <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435023372_943176447352859_3404519681467152429_n.png?stp=cp0_dst-png&_nc_cat=105&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ax7tvHP5cuoAb7gRu8_&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGT22E-u_KyTYdny-KKElR-gUBf0GUOi2bvAKWoG2UVuQ&oe=6649A9B7' />
           <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434670771_370909709272930_4174549600339023260_n.png?stp=cp0_dst-png&_nc_cat=111&ccb=1-7&_nc_sid=5f2048&_nc_ohc=mO-iliPj2JUAb5oypl-&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QE1p1HOuZHeGaHOZF-qYBhGXzkGQyfPDOYMaYj20CEfKw&oe=664986E8' />
-          <label className='button_upImg' htmlFor='file'>
+          {/* // Thêm sự kiện click vào label để kích hoạt input file */}
+          <label className='button_upImg' htmlFor='file' onClick={(e) => e.stopPropagation()}>
             <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434576904_898310072068559_3609240181467083327_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=7O6_pmCzJe0Ab7sDYy1&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QF-YJHslMvL-5mQKSg4n8PF-gl6uV6aJ5I1dtknEw9_FQ&oe=66499CDE' />
           </label>
           <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
         </div>
         <div className="body-child-right-4">
           <div className='input-wrapper'>
+          <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
+          {/* Hiển thị hình ảnh đã chọn trước khi gửi */}
+          {images.length > 0 && (
+            <div className="selected-images">
+              {images.map((image, index) => (
+                <img key={index} src={URL.createObjectURL(image.file)} alt={`selected-image-${index}`} />
+              ))}
+            </div>
+          )}
             <input onKeyPress={handleKeyPress} placeholder='Aa' onChange={(e) => setText(e.target.value)} value={text} />
             <div className='emoji'>
               <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435276193_1825881391266667_2981408863763185812_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=lB9Cjo4WxooAb7Pv9oT&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGqzBYud1XXiwAe8exZpvV35OCzOYNTi7nGVy-2zGi7hQ&oe=6649B246'

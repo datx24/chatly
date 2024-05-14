@@ -200,6 +200,8 @@ const GroupInfo = () => {
   const [groupImgUrl, setGroupImgUrl] = useState("")
   const [groupName, setGroupName] = useState("Nhóm 1 Widosoft")
   const [numberOfMembers, setNumberOfMembers] = useState(0)
+  const [isEditing, setIsEditing] = useState(false)
+  const [newGroupName, setNewGroupName] = useState(groupName)
 
   useEffect(() => {
     const fetchData = async() => {
@@ -246,6 +248,24 @@ const GroupInfo = () => {
     }
   }
 
+  const handleEditClick = () => {
+    setIsEditing(true)
+    setNewGroupName(groupName)
+  }
+
+  const handleSaveClick = () => {
+    setGroupName(newGroupName)
+    setIsEditing(false)
+  }
+
+  const handleCancelClick = () => {
+    setIsEditing(false)
+  }
+
+  const handleGroupNameChange = (event) => {
+    setNewGroupName(event.target.value)
+  }
+
   const member1 = 'Tài'
   const member2 = 'Đạt'
 
@@ -271,10 +291,28 @@ const GroupInfo = () => {
           </div>
           <div className="group_name_members_1">
             <div className="group_name_members_2">
-              <h3>{groupName}</h3>
-              <button className="edit_name">
-                <i className="bx bxs-edit-alt" />
-              </button>
+              {isEditing ? (
+                <>
+                  <input
+                    className="group_name_input"
+                    value={newGroupName}
+                    onChange={handleGroupNameChange}
+                  />
+                  <button className="edit_name" onClick={handleSaveClick}>
+                    Save
+                  </button>
+                  <button className="edit_name" onClick={handleCancelClick}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3>{groupName}</h3>
+                  <button onClick={handleEditClick} className="edit_name">
+                    <i className="bx bxs-edit-alt" />
+                  </button>
+                </>
+              )}
             </div>
             <p>Bao gồm {member1}, {member2} và {numberOfMembers-2} người khác</p>
           </div>

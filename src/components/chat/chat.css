@@ -325,6 +325,10 @@
     font-family: 'Roboto',sans-serif;
   }
   
-
+/* Add this CSS to highlight the message */
+.highlight {
+    background-color: yellow; /* Highlight color */
+    transition: background-color 0.5s ease;
+  }
 
 

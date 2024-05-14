@@ -2,43 +2,44 @@ import '../userInfo/userInfo.css'
 import { useState, useEffect } from 'react'
 import upload from '../../lib/upload'
 import { useUserStore } from '../../lib/userStore'
-import { signOut, onAuthStateChanged,getAuth } from 'firebase/auth'
+import { signOut, onAuthStateChanged, getAuth, updateProfile } from 'firebase/auth'
 import { auth } from '../../lib/firebaseConfig'
 import AddUser from '../../addUser/addUser'
 import Edit from '../userInfo/edit/edit'
 
-
 const UserInfo = () => {
   const [userDisplayName, setUserDisplayName] = useState('')
   const [userImgUrl, setUserImgUrl] = useState('')
-  const { currentUser } = useUserStore();
+  const { currentUser } = useUserStore()
   const [addUserMode, setAddUserMode] = useState(false)
-  const [isEditing, setIsEditing] = useState(false); // new state
-
+  const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUserDisplayName(user.displayName || '');
-        const auth = getAuth();
-        const photoURL = auth.currentUser.photoURL;
-        setUserImgUrl(photoURL || '');
+        setUserDisplayName(user.displayName || '')
+        const photoURL = user.photoURL
+        setUserImgUrl(photoURL || '')
       } else {
-        setUserDisplayName('');
-        setUserImgUrl('');
+        setUserDisplayName('')
+        setUserImgUrl('')
       }
-    });
+    })
     return () => {
-      unsubscribe();
+      unsubscribe()
     }
-  }, [auth]);
-  
+  }, [])
 
   const handleImageUpload = async (file) => {
     try {
       const url = await upload(file)
       setUserImgUrl(url)
       localStorage.setItem('userImageUrl', url)
+      // Update the user's photoURL in Firebase
+      const auth = getAuth()
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: url })
+      }
     } catch (error) {
       console.error('Error uploading image:', error)
       // Handle error properly, e.g. display an error message to the user
@@ -68,29 +69,30 @@ const UserInfo = () => {
   }
 
   const handleEditClick = () => {
-    setIsEditing(!isEditing);
-  };
+    setIsEditing(!isEditing)
+  }
 
   return (
     <div className='userInfo'>
       <div className='user-information'>
         <div className="user-information-1">
           <div className='user-image'>
-            
-              <input
-                id="fileInput"
-                type="file"
-                accept="image/*"
-                onChange={handleFileInputChange}
-                style={{ display: 'none' }}
-              />
-              {userImgUrl? (
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              onChange={handleFileInputChange}
+              style={{ display: 'none' }}
+            />
+            <div className='user-image child' onClick={() => document.getElementById('fileInput').click()} style={{ cursor: 'pointer' }}>
+              {userImgUrl ? (
                 <img src={userImgUrl} alt="Uploaded" />
               ) : (
                 <span>Add Image</span>
               )}
+              <div className='user-status'></div>
+            </div>
             
-            <div className='user-status'></div>
           </div>
           <div className="user-name">
             <span>{userDisplayName}</span>
@@ -101,7 +103,7 @@ const UserInfo = () => {
                 alt="Bell Icon"
               />
               <span onClick={handleEditClick}>...</span>
-              {isEditing && <Edit/>}
+              {isEditing && <Edit />}
             </div>
           </div>
         </div>
@@ -112,7 +114,7 @@ const UserInfo = () => {
           />
           <input placeholder='Tìm kiếm tên, nhóm...' />
           <button onClick={handleAddUserClick}>Add User</button>
-          {addUserMode && <AddUser />} 
+          {addUserMode && <AddUser />}
         </div>
       </div>
     </div>

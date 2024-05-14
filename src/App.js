@@ -36,7 +36,9 @@ const App = () => {
     }
   }, [fetchUserInfo])
 
-  if (isLoading) return <div className='loading'>Loading...</div>
+  if (isLoading) return <div className="loading-container">
+  <div className="loading"></div>
+</div>
 
   // If user is not logged in, display login page
   if (!currentUser) {

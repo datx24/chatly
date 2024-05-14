@@ -23,6 +23,7 @@
 
 .user-image{
     /* padding: 40px; */
+    position: relative;
     border-radius: 100%;
     width: 85px;
     height: 80px;
@@ -31,6 +32,7 @@
     display: flex;
     gap:20px;
     /* background-size: cover; */
+    
     img{
         border: 3px solid rgba(35, 140, 159, 1);
         width: 75px;
@@ -51,9 +53,10 @@
     position: relative;
     display: inline-block;
     top: -10%;
-    left: -5.5%;
+    left: -12.5%;
     transform: translate(356%, 245%);
 }
+
 
 .user-name{
     margin-left: 10px;
@@ -122,14 +125,6 @@
 .input-wrapper input:focus{
     outline: none;
 }
-
-/* .custom-file-upload img{
-    width: 50px;
-    height: 78px;
-    position: absolute;
-    display: inline-block;
-    border-radius: 50%;
-} */
 
 .custom-file-upload{
     position: absolute;

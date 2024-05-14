@@ -25,6 +25,10 @@ const Chat = () => {
   const [images, setImages] = useState([]); // Add this state to store multiple images
   const [latestTextMessage, setLatestTextMessage] = useState(null); // State để lưu trữ tin nhắn văn bản mới nhất
   const storage = getStorage();
+  const [messages, setMessages] = useState([]);
+  const [showMessageSearch, setShowMessageSearch] = useState(false); // State to control the display of message search
+  const [currentIndex, setCurrentIndex] = useState(0); // State to keep track of the current search result index
+
   
 
   const [img, setImg] = useState({
@@ -163,18 +167,6 @@ const Chat = () => {
   };
 
   
-   // Hàm lọc tin nhắn chỉ hiển thị tin nhắn văn bản
-  const filterTextMessages = (messages) => {
-    return messages.filter((message) => {
-      return message.text && !message.img; // Chỉ lọc ra những tin nhắn có văn bản và không có ảnh
-    });
-  };
-
-  
-
-
-
-  
   const handleHideGroupInfo = () => {
     setShowGroupInfo(false);
   };
@@ -189,21 +181,51 @@ const Chat = () => {
     }
   };
 
-  const filterMessages = (searchQuery) => {
-    return chat?.messages?.filter((message) => {
-      return message.text.toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'chats', chatId), (snapshot) => {
+      setMessages(snapshot.data()?.messages || []);
     });
-  };
 
-  const updateSearchResults = (searchQuery) => {
-    const results = filterMessages(searchQuery);
-    setSearchResults(results);
-  };
+    return () => unsubscribe();
+  }, [chatId]);
+
+  useEffect(() => {
+    const filteredMessages = messages.filter(message =>
+      message.text && message.text.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setSearchResults(filteredMessages);
+  }, [messages, searchQuery]);
 
   const handleSearch = (e) => {
-    const searchQuery = e.target.value;
-    updateSearchResults(searchQuery);
+    setSearchQuery(e.target.value);
   };
+
+    // Function to handle the search button click
+  const handleSearchClick = () => {
+    setShowMessageSearch(true); // Show message search only if there are search results
+    setCurrentIndex(0); // Reset to the first search result
+  };
+
+  useEffect(() => {
+    // Reset showMessageSearch when search query changes
+    setShowMessageSearch(false);
+  }, [searchQuery]);
+
+  // Function to handle moving to the next search result
+  const handleNext = () => {
+    if (currentIndex < searchResults.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  // Function to handle moving to the previous search result
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+  
+  
 
   return (
     <div className='chat'>
@@ -217,20 +239,26 @@ const Chat = () => {
             {/* <p>4 người</p> */}
           </div>
           <div className='body-child-right-1-nearright'>
-            <div className='input-wrapper'>
-              <input placeholder='Tìm tin nhắn' />
-              <img value={searchQuery}
-              onChange={handleSearch} src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1'>     
-              </img>
-            </div>
-            {searchQuery && (
-              <div>
-                {filterMessages(searchQuery).map((message) => (
-                  <div key={message.id}>{message.text}</div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className='input-wrapper'>
+          <input placeholder='Tìm tin nhắn' onChange={handleSearch} />
+          <img onClick={handleSearchClick} src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1' />
+        </div>
+        {showMessageSearch && searchQuery && searchResults.length > 0 && (
+  <div className='message-search-container'>
+    <div className='message-search'>
+      <div className='message-search left'>
+        <span>{searchResults[currentIndex].text}</span>
+        <span>{moment(searchResults[currentIndex].createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
+      </div>
+      <div className='message-search right'>
+        <i onClick={handleNext} className='bx bx-chevron-down'></i>
+        <p>{currentIndex + 1}/{searchResults.length}</p>
+        <i onClick={handlePrevious} className='bx bx-chevron-up'></i>
+      </div>
+    </div>
+  </div>
+)}
+      </div>
           <div className='body-child-right-1-right'>
             <div className='body-child-right-1-right-1'>
               <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435010966_1355459908470106_7966605552557510732_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=l9rES8sMrUoAb6XUBHD&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGScK0m1FN1R57AcWdTb4-CKG9__zFqfrdq26XHne2jhg&oe=66496EDF'

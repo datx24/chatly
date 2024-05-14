@@ -91,6 +91,7 @@
 }
 
 .body-child-right-4{
+    display: flex;
     position: relative;
     height: 40px;
     /* background-color:rgb(240, 11, 183); */
@@ -174,7 +175,7 @@
 
 .body-child-right-1-nearright  .input-wrapper img{
     position: absolute;
-    margin-left: 28.8%;
+    margin-left: 88.8%;
     height: 46px;
 }
 
@@ -232,7 +233,8 @@
 }
 
 .input-wrapper .selected-images{
-    top: -136px;
+    left: -32px;
+    top: -118px;
     position: absolute;
     display: inline-flex;
     width: max-content;
@@ -240,19 +242,20 @@
     border: 1px solid black;
     flex-direction: row;
     img{
+        left: 11px;
         display: flex;
         width: 80px;
         height: 80px;
         object-fit: cover;
         position: relative;
-        top:8px;
+        top: 10px;
         border-radius: 20%;
         margin-right: 5px;
     }
 }
 
 .body-child-right-2 {
-    height: 500px;
+    height: 525px;
     flex: 6 1;
     padding: 20px;
     border-top-style: solid;
@@ -278,6 +281,50 @@
     background-color: rgba(100, 100, 100, 0.61);
     border-radius: 5px;
 }
+
+.body-child-right{
+    height: 700px;
+    position: relative;
+    margin-bottom: none;
+}
+.message-search-container{
+    top:-4px;
+    display: flex;
+    position: relative;
+    height: 40px;
+    justify-content: center;
+    border: 1px solid black;
+    box-shadow: 0px 4px 2px 0px rgba(0, 0, 0, 0.08);
+        .message-search {
+            width: 480px;
+            display: flex;
+            flex-direction: row;
+            position: relative;
+            padding: 5px; /* Khoảng cách nội dung với viền */
+            margin-bottom: 5px; /* Khoảng cách giữa các tin nhắn */
+        }
+}
+
+.message-search .left {
+    flex: 4;
+}
+
+.message-search .right {
+    flex: 1;
+    i{
+        object-fit: cover;
+        padding: 4px;
+    }
+}
+
+  
+  .message-search span {
+    font-size: 16px; /* Cỡ chữ */
+    color: #333; /* Màu chữ */
+    margin-right: 20px; /* Khoảng cách giữa hai span */
+    font-family: 'Roboto',sans-serif;
+  }
+  
 
 
 

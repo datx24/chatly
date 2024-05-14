@@ -1,6 +1,6 @@
 import '../chat/chat.css';
 import EmojiPicker from 'emoji-picker-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import AddUser from '../addUser/addUser';
 import { arrayUnion, doc, onSnapshot, updateDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebaseConfig';
@@ -28,6 +28,12 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [showMessageSearch, setShowMessageSearch] = useState(false); // State to control the display of message search
   const [currentIndex, setCurrentIndex] = useState(0); // State to keep track of the current search result index
+  const messageRefs = useRef([]); // Create a ref array to store references to message elements
+  // Thêm state mới để lưu vị trí của tin nhắn được tìm thấy
+const [foundMessageIndex, setFoundMessageIndex] = useState(-1);
+const [foundMessage, setFoundMessage] = useState(null);
+
+
 
   
 
@@ -200,11 +206,21 @@ const Chat = () => {
     setSearchQuery(e.target.value);
   };
 
-    // Function to handle the search button click
   const handleSearchClick = () => {
-    setShowMessageSearch(true); // Show message search only if there are search results
-    setCurrentIndex(0); // Reset to the first search result
+    setShowMessageSearch(true);
+    setCurrentIndex(0);
+  
+    const foundMessage = searchResults.find(message =>
+      message.text && message.text.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  
+    if (foundMessage) {
+      setFoundMessage(foundMessage);
+      setCurrentIndex(searchResults.indexOf(foundMessage));
+    }
   };
+  
+  
 
   useEffect(() => {
     // Reset showMessageSearch when search query changes
@@ -215,15 +231,37 @@ const Chat = () => {
   const handleNext = () => {
     if (currentIndex < searchResults.length - 1) {
       setCurrentIndex(currentIndex + 1);
+      const nextMessage = searchResults[currentIndex + 1];
+      setFoundMessage(nextMessage);
     }
   };
+  
 
   // Function to handle moving to the previous search result
   const handlePrevious = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+      const previousMessage = searchResults[currentIndex - 1];
+      setFoundMessage(previousMessage);
     }
   };
+  
+  useEffect(() => {
+    if (showMessageSearch && foundMessage) {
+      const foundIndex = messages.findIndex(message => message === foundMessage);
+      if (foundIndex !== -1 && messageRefs.current[foundIndex]) {
+        messageRefs.current[foundIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  
+        // Add highlight class to the current message
+        messageRefs.current[foundIndex].classList.add('highlight');
+  
+        // Remove highlight class after a delay
+        setTimeout(() => {
+          messageRefs.current[foundIndex].classList.remove('highlight');
+        }, 2000);
+      }
+    }
+  }, [foundMessage, showMessageSearch]);
   
   
 
@@ -258,6 +296,8 @@ const Chat = () => {
     </div>
   </div>
 )}
+
+
       </div>
           <div className='body-child-right-1-right'>
             <div className='body-child-right-1-right-1'>
@@ -296,7 +336,11 @@ const Chat = () => {
           )}
 
 {chat?.messages?.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()).map((message, index) => (
-  <div className={message.senderId === currentUser.id ? 'Message own' : 'Message'} key={index}>
+  <div
+    className={message.senderId === currentUser.id ? 'Message own' : 'Message'}
+    key={index}
+    ref={(el) => (messageRefs.current[index] = el)} // Assign ref to each message element
+  >
     {/* Display the avatar for both sender and receiver */}
     {message.senderId && (
       <img src={message.senderId === currentUser.id ? currentUser.photoURL : user.photoURL} alt="Avatar" />
@@ -327,6 +371,8 @@ const Chat = () => {
     </div>
   </div>
 ))}
+
+
 
 
         </div>

@@ -70,15 +70,7 @@ const ChatList = () => {
     }
   };
 
-  const handleCloseChat = (chatId) => {
-    setChats((prevChats) => {
-      const updatedChats = prevChats.filter((chat) => chat.chatId !== chatId);
-      if (updatedChats.length === prevChats.length) {
-        console.error('Chat not found:', chatId);
-      }
-      return updatedChats;
-    });
-  };
+  
 
   return (
     <div className='chatList'>
@@ -95,7 +87,6 @@ const ChatList = () => {
                 <span>{chat.user.displayName}</span><br />
                 <p>{chat.lastMessage} - {calculateTimeAgo(chat.updatedAt)}</p>
               </div>
-              <button className="close-button" onClick={() => handleCloseChat(chat.chatId)}>X</button>
             </div>
           ) : null}
         </div>

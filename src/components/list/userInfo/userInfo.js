@@ -1,5 +1,5 @@
 import '../userInfo/userInfo.css'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import upload from '../../lib/upload'
 import { useUserStore } from '../../lib/userStore'
 import { signOut, onAuthStateChanged, getAuth, updateProfile } from 'firebase/auth'
@@ -13,6 +13,8 @@ const UserInfo = () => {
   const { currentUser } = useUserStore()
   const [addUserMode, setAddUserMode] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [chats, setChats] = useState([]);
+  const addUserRef = useRef(null); // Tham chiếu đến phần tử chứa AddUser
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -29,6 +31,19 @@ const UserInfo = () => {
       unsubscribe()
     }
   }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (addUserRef.current && !addUserRef.current.contains(event.target)) {
+        setAddUserMode(false); // Ẩn AddUser nếu click ra ngoài vùng của nó
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleImageUpload = async (file) => {
     try {
@@ -72,6 +87,12 @@ const UserInfo = () => {
     setIsEditing(!isEditing)
   }
 
+  const updateChats = (newChat) => {
+    setChats(prevChats => {
+      return [...prevChats, newChat];
+    });
+  };
+
   return (
     <div className='userInfo'>
       <div className='user-information'>
@@ -114,7 +135,9 @@ const UserInfo = () => {
           />
           <input placeholder='Tìm kiếm tên, nhóm...' />
           <button onClick={handleAddUserClick}>Add User</button>
-          {addUserMode && <AddUser />}
+          <div ref={addUserRef}>
+            {addUserMode && <AddUser updateChats={updateChats} />}
+          </div>
         </div>
       </div>
     </div>

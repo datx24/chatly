@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebaseConfig';
 import { useUserStore } from '../../lib/userStore';
 import { useChatStore } from '../../lib/chatStore';
 import { formatDistanceToNow } from 'date-fns';
-import '../chatList/chatList.css'
-import moment from 'moment';
+import '../chatList/chatList.css';
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
@@ -15,65 +14,90 @@ const ChatList = () => {
   useEffect(() => {
     if (isLoading || !currentUser?.id) return;
 
-    const unSub = onSnapshot(doc(db, "usersChat", currentUser.id), async (res) => {
+    const unSub = onSnapshot(doc(db, 'usersChat', currentUser.id), async (res) => {
       const items = res.data().chats;
 
       const promises = items.map(async (item) => {
-        let receiverId = item.receiverId === currentUser.id ? item.chatId.split('_')[0] : item.receiverId;
-        const userDocRef = doc(db, "users", receiverId);
+        const receiverId = item.receiverId === currentUser.id ? item.chatId.split('_')[0] : item.receiverId;
+        const userDocRef = doc(db, 'users', receiverId);
         const userDocSnap = await getDoc(userDocRef);
         const user = userDocSnap.data();
 
         if (user) {
           return { ...item, user };
         } else {
-          console.error('Dữ liệu người dùng không khả dụng cho cuộc trò chuyện', item);
+          console.error('User data is not available for chat', item);
           return null;
         }
       });
 
       const chatData = await Promise.all(promises);
-      setChats(chatData.filter(Boolean).sort((a, b) => b.updatedAt - a.updatedAt));
+
+      // Filter out duplicate receiverIds
+      const uniqueReceiverIds = new Set();
+      const filteredChats = chatData.filter(chat => {
+        if (uniqueReceiverIds.has(chat.user.id)) {
+          return false;
+        } else {
+          uniqueReceiverIds.add(chat.user.id);
+          return true;
+        }
+      });
+
+      setChats(filteredChats);
     });
 
     return () => {
       unSub();
-    }
+    };
   }, [currentUser.id, isLoading]);
 
   const calculateTimeAgo = (timestamp) => {
     if (timestamp && typeof timestamp.toDate === 'function') {
-      const now = new Date();
       const timeAgo = formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
-
       return timeAgo;
     } else {
-      console.error('Thời gian không hợp lệ:', timestamp);
-      return 'Thời gian không hợp lệ';
+      console.error('Invalid time:', timestamp);
+      return 'Invalid time';
     }
   };
 
-  const handleSelected = async (chat) => {
+  const handleSelected = (chat) => {
     if (chat && chat.user) {
       changeChat(chat.chatId, chat.user);
     } else {
-      console.error('Dữ liệu người dùng không khả dụng cho cuộc trò chuyện', chat);
+      console.error('User data is not available for chat', chat);
     }
+  };
+
+  const handleCloseChat = (chatId) => {
+    setChats((prevChats) => {
+      const updatedChats = prevChats.filter((chat) => chat.chatId !== chatId);
+      if (updatedChats.length === prevChats.length) {
+        console.error('Chat not found:', chatId);
+      }
+      return updatedChats;
+    });
   };
 
   return (
     <div className='chatList'>
       {chats.map((chat) => (
-        <div className='body2-child-1' key={chat.user.uid} onClick={() => handleSelected(chat)}>
-          <div className='body2-child-1-left1'>
-            <div className='logo-body2'>
-              <img src={chat.user.photoURL} alt="Ảnh đại diện người dùng" />
+        <div key={chat.chatId}>
+          {chat.user ? (
+            <div className='body2-child-1' onClick={() => handleSelected(chat)}>
+              <div className='body2-child-1-left1'>
+                <div className='logo-body2'>
+                  <img src={chat.user.photoURL} alt="User Avatar" />
+                </div>
+              </div>
+              <div className='body2-child-1-left2'>
+                <span>{chat.user.displayName}</span><br />
+                <p>{chat.lastMessage} - {calculateTimeAgo(chat.updatedAt)}</p>
+              </div>
+              <button className="close-button" onClick={() => handleCloseChat(chat.chatId)}>X</button>
             </div>
-          </div>
-          <div className='body2-child-1-left2'>
-            <span>{chat.user.displayName}</span><br />
-            <p>{chat.lastMessage} - {calculateTimeAgo(chat.createdAt)}</p>
-          </div>
+          ) : null}
         </div>
       ))}
     </div>

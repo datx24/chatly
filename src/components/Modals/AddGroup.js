@@ -1,10 +1,10 @@
-import React,{ useState } from 'react'
-import styled from 'styled-components'
-import Header from './Header'
-import ListAdd from '../Tab/AddMemberGroup/ListAdd'
-import createGroup,{groupId} from '../lib/groups';
-import DisplayImage,{img} from './DisplayImage';
-import InputText,{nameGroup} from './InputText';
+import React, { useState } from 'react';
+import styled from 'styled-components';
+import Header from './Header';
+import ListAdd from '../Tab/AddMemberGroup/ListAdd';
+import createGroup from '../lib/groups';
+import DisplayImage,{imageFile} from './DisplayImage';
+import InputText, { nameGroup } from './InputText';
 const AddGroupStyled = styled.div`
     width: 471px;
     height: 582px;
@@ -99,24 +99,26 @@ const AddGroupStyled = styled.div`
 `
 export default function AddGroup(){
 
-    let SelectUsers = [];
+    const [image, setImage] = useState(null);
+    const [selectedUsers, setSelectedUsers] = useState([]);
+
     const handleSelectedUsers = (selectedUsers) => {
-        // Xử lý dữ liệu từ mảng selectedUsers ở đây
-        SelectUsers = selectedUsers;
-       
-      };
-   function handelClick(){
-        createGroup(nameGroup,img,SelectUsers)//Thêm myId
-        
-    }
+        setSelectedUsers(selectedUsers);
+    };
+
+    const handleCreateGroup = () => {
+
+    createGroup(nameGroup, imageFile, selectedUsers);
+    };
     
     return (
         <AddGroupStyled>
             <Header/>
+            
             <div className='group-info'>
                 <h3>Tạo nhóm</h3>
                 <div className='group_name'>
-                    <DisplayImage/>
+                <DisplayImage setImage={setImage} />
                     <InputText/>
                 </div>
                 <div className='search_bar'>
@@ -129,8 +131,11 @@ export default function AddGroup(){
                 {/* <p>Gợi ý</p> */}
                 <ListAdd onSelectUsers={handleSelectedUsers}/>
             </div>
-            <div style={{display: "flex", justifyContent: "center"}}>
-                <button  onClick={ handelClick} className='create-group'>Tạo nhóm</button>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                
+                <button onClick={handleCreateGroup} className="create-group">
+                Tạo nhóm
+                </button>
             </div>
         </AddGroupStyled>
     )

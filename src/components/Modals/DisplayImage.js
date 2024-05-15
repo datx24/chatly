@@ -1,20 +1,21 @@
 import React, { useState } from "react";
-var img;
+var imageFile;
 const DisplayImage = () => {
 
 const [image, setImage] = useState(null);
   const onImageChange = event => {
     if (event.target.files && event.target.files[0]) {
       let img = event.target.files[0];
+      imageFile = img;
       setImage(URL.createObjectURL(img));
     }
   };
-  img = image;
+  console.log('this is image:', image);
   return (
     <div>
       <div>
         <div>
-          <img src={img} alt="" />
+          <img src={image} alt="" />
           
           <input type="file" name="myImage" onChange={onImageChange} />
          
@@ -23,5 +24,5 @@ const [image, setImage] = useState(null);
     </div>
   );
 };
-export {img};
+export {imageFile};
 export default DisplayImage;

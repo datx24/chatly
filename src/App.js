@@ -18,6 +18,7 @@ import UserInfo from './components/list/userInfo/userInfo'
 import { db } from "./components/lib/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import GroupInfo from './components/Modals/GroupInfo'
+import { imageFile } from './components/Modals/DisplayImage'
 const App = () => {
   const [isLoading, setIsLoading] = useState(true); // Add loading state to display loading message
   const { currentUser, fetchUserInfo } = useUserStore();
@@ -99,10 +100,10 @@ const App = () => {
        
         />  */}
         {/* <GroupInfor/> */}
-         <ChatRom/>
+         {/* <ChatRom/> */}
       {/* </div> */}
         {/* <GroupInfo/> */}
-      
+        <ChatRom/>
     </div>
    
   )

@@ -30,7 +30,6 @@
     height: 60px;
     border-radius: 50%;
     border: 1px solid #ddd;
-    overflow: hidden; /* add overflow hidden to prevent image from overflowing */
     img {
       border: 2px solid rgba(35, 140, 159, 1);
       width: 100%;
@@ -74,3 +73,67 @@
     line-height: 1.2;
     color: #666; /* add a darker text color for better readability */
   }
+
+.moon-backdrop{
+  display: flex;
+  position: relative;
+  background-color: aqua;
+  height: 140px;
+  width: 140px;
+  top: -209px;
+  left: 251px;
+}
+
+.chatList {
+  overflow-y: auto;
+  height: 80vh;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.chatList::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.chatList::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Color of the scrollbar track */
+}
+
+.chatList::-webkit-scrollbar-thumb {
+  background: #888; /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Roundness of the scrollbar thumb */
+}
+
+.chatList::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color of the scrollbar thumb on hover */
+}
+
+.logo-body2 {
+  position: relative;
+}
+
+.dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  position: absolute;
+  border: 1px solid black; /* Add border for better visibility */
+}
+
+.dot.red {
+  background-color: red;
+  top: 45px; /* Đặt chấm red ở trên hình ảnh */
+  right: 5px; /* Đặt chấm red ở góc phải */
+}
+
+.dot.green {
+  background-color: rgba(1, 255, 72, 1);
+  top: 45px; /* Đặt chấm green ở trên hình ảnh */
+  right: 5px; /* Đặt chấm green ở góc phải */
+}
+
+
+
+
+
+

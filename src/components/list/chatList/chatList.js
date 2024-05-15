@@ -3,7 +3,8 @@ import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebaseConfig';
 import { useUserStore } from '../../lib/userStore';
 import { useChatStore } from '../../lib/chatStore';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, differenceInSeconds } from 'date-fns'; // Thêm hàm differenceInSeconds
+import vi from 'date-fns/locale/vi';
 import '../chatList/chatList.css';
 
 const ChatList = () => {
@@ -54,11 +55,17 @@ const ChatList = () => {
 
   const calculateTimeAgo = (timestamp) => {
     if (timestamp && typeof timestamp.toDate === 'function') {
-      const timeAgo = formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
-      return timeAgo;
+      const now = new Date();
+      const difference = differenceInSeconds(now, new Date(timestamp.toDate())); // Tính sự khác biệt trong giây
+      if (difference < 60) {
+        return `${difference} giây trước`; // Trả về giá trị trong giây nếu nhỏ hơn 1 phút
+      } else {
+        const timeAgo = formatDistanceToNow(new Date(timestamp.toDate()), { locale: vi, addSuffix: true });
+        return timeAgo;
+      }
     } else {
-      console.error('Invalid time:', timestamp);
-      return 'Invalid time';
+      console.error('Thời gian không hợp lệ:', timestamp);
+      return 'Thời gian không hợp lệ';
     }
   };
 
@@ -69,8 +76,6 @@ const ChatList = () => {
       console.error('User data is not available for chat', chat);
     }
   };
-
-  
 
   return (
     <div className='chatList'>
@@ -85,7 +90,7 @@ const ChatList = () => {
               </div>
               <div className='body2-child-1-left2'>
                 <span>{chat.user.displayName}</span><br />
-                <p>{chat.lastMessage} - {calculateTimeAgo(chat.updatedAt)}</p>
+                <p>{chat.lastMessage} - {calculateTimeAgo(chat.createdAt)}</p>
               </div>
             </div>
           ) : null}

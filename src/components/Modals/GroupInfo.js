@@ -20,7 +20,7 @@ const GroupInfoStyled = styled.div`
         font-size: 25px;
         font-style: normal;
         color: #324b50;
-        margin-top: 10px;
+        margin-top: 16px;
     }
     .group_name_members{
         padding-top: 0px;
@@ -49,6 +49,7 @@ const GroupInfoStyled = styled.div`
         height: 5px;
         background-color: #dbe3e4;
         position: absolute;
+        margin-top: 5px;
     }
     .group_actions h3{
         font-family: "Roboto", sans-serif;

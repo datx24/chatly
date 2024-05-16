@@ -350,6 +350,12 @@ const GroupInfo = () => {
                 <p>Rời khỏi đoạn chat</p>
               </button>
             </li>
+            <li className="group_actions_1">
+              <button className="exit-chat">
+                <i className="bx bx-exit" />
+                <p>Giải tán nhóm</p>
+              </button>
+            </li>
           </ul>
         </div>
         {showGroupInfor && (

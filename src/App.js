@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react'
 import Chat from './components/chat/chat'
 import Header from './components/header/header'
@@ -8,6 +9,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './components/lib/firebaseConfig'
 import { useUserStore } from './components/lib/userStore'
 import { useChatStore } from './components/lib/chatStore'
+import AddGroup from './components/Modals/AddGroup'
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true); // Add loading state to display loading message

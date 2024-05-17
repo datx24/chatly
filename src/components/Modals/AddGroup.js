@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import Header from './Header'
+import TabHeader from '../Tab/Components/TabHeader'
 
 const AddGroupStyled = styled.div`
     width: 471px;
@@ -138,7 +138,7 @@ const AddGroupStyled = styled.div`
 export default function AddGroup(){
     return (
         <AddGroupStyled>
-            <Header/>
+            <TabHeader/>
             <div className='group-info'>
                 <h3>Tạo nhóm</h3>
                 <div className='group_name'>

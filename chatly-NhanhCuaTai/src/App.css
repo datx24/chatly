@@ -1,0 +1,24 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container{
+    margin-left: -1%;
+    max-width: 1540px;
+    width: 1540px;
+    height: 100%;
+    background-color: white;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: row;
+    max-height: 690px;
+    position: absolute;
+}

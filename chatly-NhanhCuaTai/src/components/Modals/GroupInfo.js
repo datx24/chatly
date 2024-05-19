@@ -1,5 +1,5 @@
 import React from "react";
-import TabHeader from "../Tab/Components/TabHeader";
+import HeaderSub from "../header/HeaderSub";
 import styled from "styled-components";
 import { useState } from "react";
 import GroupInfor from "../thongTinNhom-TrangCaNhan/GroupInfor";
@@ -199,7 +199,7 @@ const GroupInfo = ({ onHide }) => {
   
     return (
       <GroupInfoStyled>
-        <TabHeader/>
+        <HeaderSub/>
         <div className="group_name_members">
           <img src="https://scontent.xx.fbcdn.net/v/t1.15752-9/435061403_1633465390755241_6587315416376135124_n.png?stp=dst-png_p206x206&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=bIgKxIwSujoAb6EDXtq&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QH8hJCvdl9wvqIHRx-Jj74NnkiTTj4oEaZYr4vBUao_4A&oe=664EE7E5" alt="" />
           <div className="group_name_members_1">

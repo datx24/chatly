@@ -1,12 +1,10 @@
 import { Form } from "antd";
 import React, { useState, useEffect } from "react";
 import styled from 'styled-components';
-import { collection, doc, setDoc } from "firebase/firestore"; 
-import TabHeader from "../Components/TabHeader";
 import ListAddConditon from "./ListAddConditon";
-import { db } from "../../lib/firebaseConfig";
 import addMembersToGroup from "../../lib/addMembersToGroup";
 import getGroupMembers from "../../lib/getGroupMembers";
+import HeaderSub from "../../header/HeaderSub";
 
 
 export const TabStyled = styled.div`
@@ -98,13 +96,13 @@ export default function AddMemberGroup(){
       
       const handleClick = () => {
         // Thực hiện việc thêm thành viên vào nhóm
-        addMembersToGroup(groupId, selectedUsers);
+        addMembersToGroup(groupId, selectedUsers)
       };
 
     return(
             <TabStyled>
                 <Form>
-                    <TabHeader/>
+                    <HeaderSub/>
                     <div className="bodyTab">
                         <div className="title">
                             <h3 className="titleText">Thêm thành viên</h3>
@@ -120,7 +118,7 @@ export default function AddMemberGroup(){
                         />
                     </div>
                     <div style={{display: "flex", justifyContent: "center"}}>
-                        <button onClick={handleClick}>Thêm</button>
+                        <button className="addBtn" onClick={handleClick}>Thêm</button>
                     </div>
                 </Form>
             </TabStyled>

@@ -133,9 +133,8 @@ export default function AddGroup(){
                 <ListAdd onSelectUsers={handleSelectedUsers}/>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-                
                 <button onClick={handleCreateGroup} className="create-group">
-                Tạo nhóm
+                    Tạo nhóm
                 </button>
             </div>
         </AddGroupStyled>

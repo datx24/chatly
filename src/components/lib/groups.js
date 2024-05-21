@@ -1,6 +1,6 @@
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, db } from "./firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useState } from "react";
 
 const createGroup = async (nameGroup, file, members) => {
@@ -18,14 +18,19 @@ const createGroup = async (nameGroup, file, members) => {
     const newGroupDoc = await addDoc(groupRef, {
       nameGroup,
       urlImg: url, // Lưu link ảnh vào trường urlImg
+      GroupId: "", // Trường GroupId được khởi tạo rỗng
       members
       // Thêm myId nếu cần
     });
-
+    
+    // Gán giá trị newGroupDoc.id cho trường GroupId
+    const groupId = newGroupDoc.id;
+    await updateDoc(doc(db, "Groups", newGroupDoc.id), { GroupId: groupId });
+    
+    console.log("Group created successfully.");
   } catch (error) {
     console.error("Error creating group:", error);
   }
 };
 
 export default createGroup;
-

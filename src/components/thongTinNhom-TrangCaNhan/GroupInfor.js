@@ -1,13 +1,19 @@
-import React  from "react";
+import React, { useState }  from "react";
 import HeaderSub from '../header/HeaderSub';
-
+import AddMemberGroup from "../Tab/AddMemberGroup/AddMemberGroup";
 function GroupInfor(props) {
+  const [isAddGroupVisible, setIsAddGroupVisible] = useState(false);
+
+  const handleAddGroupToggle = () => {
+    setIsAddGroupVisible(!isAddGroupVisible);
+  };
 
   const arr = Object.keys(props.member).map(key => props.member[key]);
 
   return (
     <div className="card m-auto" style={{ width: "28rem", borderRadius: "20px", border: "2px solid #333" }}>
       <HeaderSub/>
+      <button onClick={props.onClose}>Thoát</button>
       <div className="d-flex justify-content-evenly align-content-center m-3">
         <img src={props.ImgGroup} style={{width: '25%', border: '2px solid #238C9F', 'borderRadius':'100%' }} alt="..." />
         <div className="d-flex flex-column pe-3">
@@ -42,6 +48,8 @@ function GroupInfor(props) {
             </div>
           ))}
         </div>
+        <button onClick={handleAddGroupToggle}>Thêm thành viên</button>
+        {isAddGroupVisible && <AddMemberGroup onClose={handleAddGroupToggle} />}
       </div>
     </div>
 

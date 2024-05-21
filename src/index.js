@@ -7,19 +7,19 @@ import { BrowserRouter } from 'react-router-dom';
 import Login from '../src/components/login/login';
 import GiaoDienChinh from '../src/components/list/list';
 import App from './App';
-
-
+import { SelectedGroupProvider } from './components/ChatRoom/SelectedGroupContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
+   <SelectedGroupProvider>
   <BrowserRouter>
   <Routes>
     <Route path='/' element={<App />} />
     <Route path='/login' element={<Login />} />
-    
   </Routes>
   </BrowserRouter>
+  </SelectedGroupProvider>
   </React.StrictMode>
   
 

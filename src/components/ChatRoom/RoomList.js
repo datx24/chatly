@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useContext, useState, useEffect } from 'react';
 import { Avatar, Button, Collapse, Typography } from 'antd';
 import styled from 'styled-components';
 import { PlusSquareOutlined } from '@ant-design/icons';
@@ -8,7 +8,7 @@ import roomJoined from './RoomJoined';
 import { db } from "../lib/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { groupId } from '../lib/groups';
-
+import { SelectedGroupContext } from './SelectedGroupContext';
 const { Panel } = Collapse;
 
 const PanelStyle = styled(Panel)`
@@ -38,11 +38,14 @@ const LinkStyle = styled(Typography.Link)`
   }
 `;
 
+
+
 export default function RoomList() {
   const { currentUser } = useUserStore();
-
+  const { setSelectedGroup } = useContext(SelectedGroupContext);
   const [showAddGroup, setShowAddGroup] = useState(false);
   const [groupDataList, setGroupDataList] = useState([]);
+  const [isAddGroupVisible, setIsAddGroupVisible] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,6 +68,7 @@ export default function RoomList() {
       const groupSnapshot = await getDoc(groupRef);
       if (groupSnapshot.exists()) {
         const groupData = groupSnapshot.data();
+
         return groupData;
       } else {
         console.log("Group does not exist.");
@@ -76,34 +80,59 @@ export default function RoomList() {
     }
   };
 
-  const handleShowAddGroup = () => {
-    setShowAddGroup(true);
+  // const handleShowAddGroup = () => {
+  //   setShowAddGroup(true);
+  // };
+
+  const handleAddGroupToggle = () => {
+    setIsAddGroupVisible(!isAddGroupVisible);
   };
+
+  function handleLinkClick(groupData) {
+    setSelectedGroup(groupData);
+    
+  }
 
   return (
     <>
-      {!showAddGroup && (
+      {/* {!showAddGroup && ( */}
         <Collapse ghost defaultActiveKey={['1']}>
           <PanelStyle header="Danh sách các phòng" key="1">
             {groupDataList.map((groupData) => (
-              <LinkStyle key={groupData.id}>
+              
+              <LinkStyle
+                key={groupData.id} 
+                onClick={() => handleLinkClick(groupData)}
+              >
                 <Avatar src={groupData.urlImg}/>
-                  {console.log(groupData.nameGroup,'   ',groupData.urlImg)}
                 <Typography.Text className='username'>{groupData.nameGroup}</Typography.Text>
               </LinkStyle>
+              
             ))}
-            <Button
+           
+            {/* <Button
               type="text"
               icon={<PlusSquareOutlined />}
               className="add-room"
               onClick={handleShowAddGroup}
             >
               Thêm Phòng
-            </Button>
+            </Button> */}
+            <button
+            type="text"
+            icon={<PlusSquareOutlined />}
+            className="add-room"
+            onClick={handleAddGroupToggle}
+            >
+            Tạo nhóm
+            </button>
+            {isAddGroupVisible && <AddGroup onClose={handleAddGroupToggle} />}  
           </PanelStyle>
         </Collapse>
-      )}
-      {showAddGroup && <AddGroup />}
-    </>
+      {/* )} */}
+      {/* {showAddGroup && <AddGroup />} */}
+     
+      </>
   );
+ 
 }

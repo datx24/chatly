@@ -16,7 +16,7 @@ export default function SideBar(){
     <Row>
         <Col span={24}><UserInfor/></Col>
         <Col span={24}><RoomList/></Col>
-        <Col span={24}><UsersList/></Col>
+        {/* <Col span={24}><UsersList/></Col> */}
     </Row>
     </SideBarStyle>
     )

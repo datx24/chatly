@@ -17,14 +17,14 @@ import ChatRom from './components/ChatRoom/indexx'
 import UserInfo from './components/list/userInfo/userInfo'
 import { db } from "./components/lib/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import GroupInfo from './components/Modals/GroupInfo'
-import { imageFile } from './components/Modals/DisplayImage'
+import GroupInfo from './components/Modals/GroupInfo';
+import { imageFile } from './components/Modals/DisplayImage';
 const App = () => {
   const [isLoading, setIsLoading] = useState(true); // Add loading state to display loading message
   const { currentUser, fetchUserInfo } = useUserStore();
   const {chatId} = useChatStore();
   const [user, setUser] = useState(null);
-  const [member, setMember] = useState([]);
+ 
   const handleSignIn = () => {
     // Redirect to the main page or update the state of the app
     console.log('User signed in!');
@@ -48,20 +48,7 @@ const App = () => {
   }, [fetchUserInfo]);
 
   // hiển thị thành viên trong nhóm
-  useEffect(() => {
-    // Gọi hàm getGroupMembers ở đây
-    const groupId = 'xPAs9VZpYpcUzBUipjA7';
-
-    getGroupMembers(groupId)
-      .then((memberObjects) => {
-        
-        setMember(memberObjects);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        // Xử lý lỗi ở đây
-      });
-  }, []);
+ 
 
   if (isLoading) return <div className='loading'>Loading...</div>
 
@@ -104,6 +91,8 @@ const App = () => {
       {/* </div> */}
         {/* <GroupInfo/> */}
         <ChatRom/>
+        
+        {/* <GroupInfo/> */}
     </div>
    
   )

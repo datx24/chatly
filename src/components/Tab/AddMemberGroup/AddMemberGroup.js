@@ -1,5 +1,5 @@
 import { Form } from "antd";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
 import styled from 'styled-components';
 import { collection, doc, setDoc } from "firebase/firestore"; 
 import TabHeader from "../Components/TabHeader";
@@ -7,7 +7,7 @@ import ListAddConditon from "./ListAddConditon";
 import { db } from "../../lib/firebaseConfig";
 import addMembersToGroup from "../../lib/addMembersToGroup";
 import getGroupMembers from "../../lib/getGroupMembers";
-
+import { SelectedGroupContext } from "../../ChatRoom/SelectedGroupContext";
 
 export const TabStyled = styled.div`
     width: 471px;
@@ -68,11 +68,11 @@ export const TabStyled = styled.div`
 
 
 
-export default function AddMemberGroup(){
-
+export default function AddMemberGroup({ onClose }){
+    const { selectedGroup } = useContext(SelectedGroupContext);
     //lấy mảng selectusers 
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [groupId, setGroupId] = useState("OuZyRAcfT09JSm9nmRpQ"); // Giá trị ban đầu của groupId
+    const [groupId, setGroupId] = useState(selectedGroup.GroupId); // Giá trị ban đầu của groupId
     const [groupMembers, setGroupMembers] = useState([]);
 
     useEffect(() => {
@@ -102,6 +102,7 @@ export default function AddMemberGroup(){
             <TabStyled>
                 <Form>
                     <TabHeader/>
+                    <button onClick={onClose}>Thoát</button>
                     <div className="bodyTab">
                         <div className="title">
                             <h3 className="titleText">Thêm thành viên</h3>

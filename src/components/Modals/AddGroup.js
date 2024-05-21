@@ -97,7 +97,7 @@ const AddGroupStyled = styled.div`
         margin-top: 10px;
     }
 `
-export default function AddGroup(){
+export default function AddGroup({ onClose }){
 
     const [image, setImage] = useState(null);
     const [selectedUsers, setSelectedUsers] = useState([]);
@@ -109,12 +109,14 @@ export default function AddGroup(){
     const handleCreateGroup = () => {
 
     createGroup(nameGroup, imageFile, selectedUsers);
+   
     };
+
     
     return (
         <AddGroupStyled>
             <Header/>
-            
+            <button onClick={onClose}>Thoát</button>
             <div className='group-info'>
                 <h3>Tạo nhóm</h3>
                 <div className='group_name'>
@@ -131,12 +133,14 @@ export default function AddGroup(){
                 {/* <p>Gợi ý</p> */}
                 <ListAdd onSelectUsers={handleSelectedUsers}/>
             </div>
+        
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 
                 <button onClick={handleCreateGroup} className="create-group">
                 Tạo nhóm
                 </button>
             </div>
+            
         </AddGroupStyled>
     )
 }

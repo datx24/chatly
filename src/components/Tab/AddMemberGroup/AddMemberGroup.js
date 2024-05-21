@@ -3,6 +3,7 @@ import React, { useState, useEffect,useContext } from "react";
 import styled from 'styled-components';
 import { collection, doc, setDoc } from "firebase/firestore"; 
 import TabHeader from "../Components/TabHeader";
+import Header from "../../Modals/Header";
 import ListAddConditon from "./ListAddConditon";
 import { db } from "../../lib/firebaseConfig";
 import addMembersToGroup from "../../lib/addMembersToGroup";
@@ -14,6 +15,8 @@ export const TabStyled = styled.div`
     height: 582px;
     border: 2px solid black;
     border-radius: 20px;
+    position: relative;
+    top: -73%;
     
     .bodyTab{
         padding: 0px 16px;
@@ -101,8 +104,11 @@ export default function AddMemberGroup({ onClose }){
         <div>
             <TabStyled>
                 <Form>
-                    <TabHeader/>
-                    <button onClick={onClose}>Thoát</button>
+                    <Header/>
+                    <button 
+                        onClick={onClose}
+                        className='closeTab'
+                    >X</button>
                     <div className="bodyTab">
                         <div className="title">
                             <h3 className="titleText">Thêm thành viên</h3>

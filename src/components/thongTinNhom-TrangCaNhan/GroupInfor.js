@@ -1,6 +1,14 @@
 import React, { useState }  from "react";
 import HeaderSub from '../header/HeaderSub';
+import Header from "../Modals/Header";
 import AddMemberGroup from "../Tab/AddMemberGroup/AddMemberGroup";
+import styled from "styled-components";
+const GroupInforStyle = styled.div`
+ position: relative;
+ top: -73%;
+ height: 582px;
+`
+
 function GroupInfor(props) {
   const [isAddGroupVisible, setIsAddGroupVisible] = useState(false);
 
@@ -11,9 +19,12 @@ function GroupInfor(props) {
   const arr = Object.keys(props.member).map(key => props.member[key]);
 
   return (
-    <div className="card m-auto" style={{ width: "28rem", borderRadius: "20px", border: "2px solid #333" }}>
-      <HeaderSub/>
-      <button onClick={props.onClose}>Thoát</button>
+    <GroupInforStyle className="card m-auto" style={{ width: "471px", borderRadius: "20px", border: "2px solid #333" }}>
+     <Header/>
+     <button 
+        onClick={props.onClose}
+        className='closeTab'
+      >X</button>
       <div className="d-flex justify-content-evenly align-content-center m-3">
         <img src={props.ImgGroup} style={{width: '25%', border: '2px solid #238C9F', 'borderRadius':'100%' }} alt="..." />
         <div className="d-flex flex-column pe-3">
@@ -51,7 +62,7 @@ function GroupInfor(props) {
         <button onClick={handleAddGroupToggle}>Thêm thành viên</button>
         {isAddGroupVisible && <AddMemberGroup onClose={handleAddGroupToggle} />}
       </div>
-    </div>
+    </GroupInforStyle>
 
   );
 }

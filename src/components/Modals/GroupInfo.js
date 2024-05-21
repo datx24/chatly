@@ -13,9 +13,10 @@ import getGroupMembers from "../lib/getGroupMembers";
 import { useUserStore } from "../lib/userStore";
 import deleteMember from "../lib/deleteMember";
 const GroupInfoStyled = styled.div`
-    position:absolute;
-    right:31px;
-    top:83px;
+    ${'' /* position:absolute; */}
+    position: relative;
+    right:-50%;
+    top: 10px;
     width: 471px;
     height: 582px;
     border: 1px solid black;
@@ -202,6 +203,24 @@ const GroupInfoStyled = styled.div`
         height:91px;
         cursor: pointer;
     }
+    .closeTab{
+        border: none;
+        background: none;
+        font-family: "Rubik", sans-serif;
+        font-weight: 900;
+        color: white;
+        font-size: 20px;
+        position: absolute;
+        right: 10px;
+        top: 5px;
+        
+    }
+    .closeTab:hover{
+        border: none;
+        background: none;
+        color: white;
+        cursor: pointer;
+    }
 `
 
 const GroupInfo = ({ onClose }) => {
@@ -331,7 +350,11 @@ const GroupInfo = ({ onClose }) => {
      
       <GroupInfoStyled>
       <HeaderSub/>
-      <button onClick={onClose}>Thoát</button>
+
+     <button 
+      onClick={onClose}
+      className='closeTab'
+      >X</button>
 
         <div className="group_name_members">
           <div className="group-image">

@@ -10,7 +10,7 @@ const AddGroupStyled = styled.div`
     height: 582px;
     border: 1px solid black;
     border-radius: 20px;
-    
+    position: relative;
     .group-info h3{
         text-align: center;
         font-family: "Roboto", sans-serif;
@@ -96,11 +96,30 @@ const AddGroupStyled = styled.div`
         overflow-y: auto;
         margin-top: 10px;
     }
+    .closeTab{
+        border: none;
+        background: none;
+        font-family: "Rubik", sans-serif;
+        font-weight: 900;
+        color: white;
+        font-size: 20px;
+        position: absolute;
+        right: 10px;
+        top: 5px;
+        
+    }
+    .closeTab:hover{
+        border: none;
+        background: none;
+        color: white;
+        cursor: pointer;
+    }
 `
-export default function AddGroup({ onClose }){
-
+export default function AddGroup({ onClose}){
+   
     const [image, setImage] = useState(null);
     const [selectedUsers, setSelectedUsers] = useState([]);
+
 
     const handleSelectedUsers = (selectedUsers) => {
         setSelectedUsers(selectedUsers);
@@ -109,14 +128,16 @@ export default function AddGroup({ onClose }){
     const handleCreateGroup = () => {
 
     createGroup(nameGroup, imageFile, selectedUsers);
-   
     };
 
     
     return (
         <AddGroupStyled>
             <Header/>
-            <button onClick={onClose}>Thoát</button>
+            <button 
+                onClick={onClose}
+                className='closeTab'
+            >X</button>
             <div className='group-info'>
                 <h3>Tạo nhóm</h3>
                 <div className='group_name'>

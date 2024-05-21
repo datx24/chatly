@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import React, { useEffect } from "react";
 import TabHeader from "../Tab/Components/TabHeader";
 import styled from "styled-components";
@@ -112,9 +111,7 @@ const GroupInfoStyled = styled.div`
         text-align: left;
         color: #324b50;
         padding-left: 20px;
-        line-height: 0px;
-        margin-top: 35px;
-        margin-bottom: 25px;
+        line-height: 45px;
     }
     .group_actions_1 .exit-chat{
         display: flex;

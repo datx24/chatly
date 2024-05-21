@@ -1,41 +1,49 @@
-import '../userInfo/userInfo.css'
-import { useState, useEffect, useRef } from 'react'
-import upload from '../../lib/upload'
-import { useUserStore } from '../../lib/userStore'
-import { signOut, onAuthStateChanged, getAuth, updateProfile } from 'firebase/auth'
-import { auth } from '../../lib/firebaseConfig'
-import AddUser from '../../addUser/addUser'
-import Edit from '../userInfo/edit/edit'
+import '../userInfo/userInfo.css';
+import { useState, useEffect, useRef } from 'react';
+import upload from '../../lib/upload';
+import { useUserStore } from '../../lib/userStore';
+import { signOut, onAuthStateChanged, getAuth, updateProfile } from 'firebase/auth';
+import { auth } from '../../lib/firebaseConfig';
+import AddUser from '../../addUser/addUser';
+import Edit from '../userInfo/edit/edit';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../lib/firebaseConfig';
+import { useSearch } from '../../lib/searchContext'; // Import SearchContext
 
-const UserInfo = () => {
-  const [userDisplayName, setUserDisplayName] = useState('')
-  const [userImgUrl, setUserImgUrl] = useState('')
-  const { currentUser } = useUserStore()
-  const [addUserMode, setAddUserMode] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
+const UserInfo = ({ onInputChange }) => {
+  const [userDisplayName, setUserDisplayName] = useState('');
+  const [userImgUrl, setUserImgUrl] = useState('');
+  const { currentUser } = useUserStore();
+  const [addUserMode, setAddUserMode] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [chats, setChats] = useState([]);
-  const addUserRef = useRef(null); // Tham chiếu đến phần tử chứa AddUser
+  const addUserRef = useRef(null);
+  const { searchQuery, setSearchQuery, setFilteredUsers } = useSearch(); // Use SearchContext
 
+  const updateChats = (newChat) => {
+    setChats(prevChats => [...prevChats, newChat]);
+  };
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUserDisplayName(user.displayName || '')
-        const photoURL = user.photoURL
-        setUserImgUrl(photoURL || '')
+        setUserDisplayName(user.displayName || '');
+        const photoURL = user.photoURL;
+        setUserImgUrl(photoURL || '');
       } else {
-        setUserDisplayName('')
-        setUserImgUrl('')
+        setUserDisplayName('');
+        setUserImgUrl('');
       }
-    })
+    });
     return () => {
-      unsubscribe()
-    }
-  }, [])
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (addUserRef.current && !addUserRef.current.contains(event.target)) {
-        setAddUserMode(false); // Ẩn AddUser nếu click ra ngoài vùng của nó
+        setAddUserMode(false);
       }
     };
 
@@ -45,52 +53,97 @@ const UserInfo = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (currentUser?.id) {
+      const unSub = onSnapshot(doc(db, 'usersChat', currentUser.id), async (res) => {
+        const items = res.data().chats;
+
+        const promises = items.map(async (item) => {
+          const receiverId = item.receiverId === currentUser.id ? item.chatId.split('_')[0] : item.receiverId;
+          const userDocRef = doc(db, 'users', receiverId);
+          const userDocSnap = await getDoc(userDocRef);
+          const user = userDocSnap.data();
+
+          if (user) {
+            return { ...item, user };
+          } else {
+            console.error('User data is not available for chat', item);
+            return null;
+          }
+        });
+
+        const chatData = await Promise.all(promises);
+
+        const uniqueReceiverIds = new Set();
+        const filteredChats = chatData.filter(chat => {
+          if (uniqueReceiverIds.has(chat.user.id)) {
+            return false;
+          } else {
+            uniqueReceiverIds.add(chat.user.id);
+            return true;
+          }
+        });
+
+        setChats(filteredChats);
+        setFilteredUsers(filteredChats); // Initialize filtered users with all chats
+      });
+
+      return () => {
+        unSub();
+      };
+    }
+  }, [currentUser, setFilteredUsers]);
+
   const handleImageUpload = async (file) => {
     try {
-      const url = await upload(file)
-      setUserImgUrl(url)
-      localStorage.setItem('userImageUrl', url)
-      // Update the user's photoURL in Firebase
-      const auth = getAuth()
+      const url = await upload(file);
+      setUserImgUrl(url);
+      localStorage.setItem('userImageUrl', url);
+      const auth = getAuth();
       if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { photoURL: url })
+        await updateProfile(auth.currentUser, { photoURL: url });
       }
     } catch (error) {
-      console.error('Error uploading image:', error)
-      // Handle error properly, e.g. display an error message to the user
+      console.error('Error uploading image:', error);
     }
-  }
+  };
 
   const handleFileInputChange = (event) => {
-    const file = event.target.files[0]
+    const file = event.target.files[0];
     if (file) {
-      handleImageUpload(file)
+      handleImageUpload(file);
     }
-  }
+  };
 
   const handleLogout = async () => {
     try {
-      await signOut(auth)
-      localStorage.clear()
-      window.location.reload()
+      await signOut(auth);
+      localStorage.clear();
+      window.location.reload();
     } catch (error) {
-      console.error('Error logging out:', error)
-      // Handle error properly, e.g. display an error message to the user
+      console.error('Error logging out:', error);
     }
-  }
+  };
 
   const handleAddUserClick = () => {
-    setAddUserMode(!addUserMode)
-  }
+    setAddUserMode(!addUserMode);
+  };
 
   const handleEditClick = () => {
-    setIsEditing(!isEditing)
-  }
+    setIsEditing(!isEditing);
+  };
 
-  const updateChats = (newChat) => {
-    setChats(prevChats => {
-      return [...prevChats, newChat];
-    });
+  const handleInputChange = (event) => {
+    const value = event.target.value;
+    setSearchQuery(value);
+    filterUsers(value); // Directly call filterUsers to update the list
+  };
+
+  const filterUsers = (searchQuery) => {
+    const filteredUsers = chats.filter((chat) =>
+      chat.user.displayName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredUsers(filteredUsers); // Update state with filtered users
   };
 
   return (
@@ -113,7 +166,6 @@ const UserInfo = () => {
               )}
               <div className='user-status'></div>
             </div>
-            
           </div>
           <div className="user-name">
             <span>{userDisplayName}</span>
@@ -133,15 +185,21 @@ const UserInfo = () => {
             src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1'
             alt="Search Icon"
           />
-          <input placeholder='Tìm kiếm tên, nhóm...' />
+          <input 
+            type="text"
+            placeholder="Tìm kiếm tên, nhóm..."
+            value={searchQuery}
+            onChange={handleInputChange}
+          />
           <button onClick={handleAddUserClick}>Add User</button>
           <div ref={addUserRef}>
             {addUserMode && <AddUser updateChats={updateChats} />}
           </div>
         </div>
       </div>
+      {/* Remove the filtered user list here */}
     </div>
-  )
-}
+  );
+};
 
-export default UserInfo
+export default UserInfo;

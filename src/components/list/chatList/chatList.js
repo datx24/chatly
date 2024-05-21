@@ -7,7 +7,21 @@ import { formatDistanceToNow, differenceInSeconds } from 'date-fns';
 import vi from 'date-fns/locale/vi';
 import '../chatList/chatList.css';
 import { useSearch } from '../../lib/searchContext'; // Import SearchContext
+import Chat from '../../chat/chat';
 
+
+export const isChatVisible = true; 
+export const toggleChatVisibility = () => {};
+// Export hàm unblockUser để sử dụng bên ngoài
+export const unblockUser = async (userId) => {
+  try {
+    // Thực hiện các thao tác cần thiết để gỡ chặn người dùng
+    console.log(`User ${userId} has been unblocked.`);
+  } catch (error) {
+    console.error('Error unblocking user:', error);
+    throw error; // Ném ra lỗi nếu có lỗi xảy ra trong quá trình gỡ chặn người dùng
+  }
+};
 const ChatList = () => {
   const { filteredUsers } = useSearch(); // Use SearchContext
   const [selectedUser, setSelectedUser] = useState(null);
@@ -17,19 +31,28 @@ const ChatList = () => {
   const backdropRef = useRef(null);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [chats, setChats] = useState([]);
+  const [isChatVisible, setIsChatVisible] = useState(true);
+  // Define isUserBlocked state and handleUnblockUser function
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [showBlockMessage, setShowBlockMessage] = useState(false);
+  const {blockUser, unblockUser, listenBlockedUsers } = useChatStore(); // Destructure the required functions from useChatStore
+
+  const toggleChatVisibility = () => {
+    setIsChatVisible((prev) => !prev);
+  };
 
   useEffect(() => {
     if (isLoading || !currentUser?.id) return;
-  
+
     const unSub = onSnapshot(doc(db, 'usersChat', currentUser.id), async (res) => {
       const items = res.data().chats;
-  
+
       const promises = items.map(async (item) => {
         const receiverId = item.receiverId === currentUser.id ? item.chatId.split('_')[0] : item.receiverId;
         const userDocRef = doc(db, 'users', receiverId);
         const userDocSnap = await getDoc(userDocRef);
         const user = userDocSnap.data();
-  
+
         if (user) {
           return { ...item, user };
         } else {
@@ -37,9 +60,9 @@ const ChatList = () => {
           return null;
         }
       });
-  
+
       const chatData = await Promise.all(promises);
-  
+
       const uniqueReceiverIds = new Set();
       const filteredChats = chatData.filter(chat => {
         if (uniqueReceiverIds.has(chat.user.id)) {
@@ -49,7 +72,7 @@ const ChatList = () => {
           return true;
         }
       });
-  
+
       setChats(filteredChats);
     });
 
@@ -130,6 +153,81 @@ const ChatList = () => {
     };
   }, [isBackdropVisible]);
 
+  const handleBlockUser = async (userId) => {
+    try {
+      // Cập nhật trạng thái chặn trong cơ sở dữ liệu
+      await blockUser(userId);
+      // Cập nhật trạng thái chặn ngay lập tức trên giao diện người dùng
+      setIsUserBlocked(true);
+      setShowBlockMessage(true);
+      setIsBackdropVisible(false);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+    }
+  };
+  
+  const handleUnblockUser = async (userId) => {
+    try {
+      // Gỡ chặn người dùng trong cơ sở dữ liệu
+      await unblockUser(userId);
+      // Cập nhật trạng thái gỡ chặn ngay lập tức trên giao diện người dùng
+      setIsUserBlocked(false);
+      setIsBackdropVisible(false);
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+    }
+  };
+  
+
+  const checkIfUserBlocked = (userId) => {
+    try {
+      const chatStoreState = useChatStore.getState();
+      if (chatStoreState && chatStoreState.blockedUsers && Array.isArray(chatStoreState.blockedUsers)) {
+        const userIsBlocked = chatStoreState.blockedUsers.includes(userId);
+        setIsUserBlocked(userIsBlocked);
+      } else {
+        setIsUserBlocked(false);
+      }
+    } catch (error) {
+      console.error('Error checking if user is blocked:', error);
+    }
+  };
+  
+  
+  
+
+  // Gọi hàm kiểm tra khi component được tải lên
+  useEffect(() => {
+    checkIfUserBlocked(selectedUser?.id);
+  }, [selectedUser]);
+
+
+  useEffect(() => {
+    if (selectedUser && selectedUser.id) {
+      checkIfUserBlocked(selectedUser.id);
+    }
+  }, [selectedUser]);
+  
+  useEffect(() => {
+    const unSubBlockedUsers = useChatStore.getState().listenBlockedUsers();
+  
+    return () => unSubBlockedUsers();
+  }, []);
+  
+  useEffect(() => {
+    if (!currentUser?.id) return;
+  
+    const unSubBlockedUser = onSnapshot(doc(db, 'users', currentUser.id), (doc) => {
+      const userData = doc.data();
+      if (userData && userData.blocked) {
+        setIsUserBlocked(userData.blocked.includes(selectedUser?.id));
+      }
+    });
+  
+    return unSubBlockedUser;
+  }, [currentUser, selectedUser]);
+  
+
   return (
     <div className='chatList'>
       {filteredUsers.map((chat) => (
@@ -151,12 +249,18 @@ const ChatList = () => {
         </div>
       ))}
       {isBackdropVisible && selectedUser && (
-        <div className="moon-backdrop" ref={backdropRef}>
-          <div className="moon-content">
-            <button>Kết bạn</button>
-          </div>
-        </div>
-      )}
+  <div className="moon-backdrop" ref={backdropRef}>
+    <div className="moon-content">
+    {!isUserBlocked && (
+  <button onClick={() => handleBlockUser(selectedUser.id)}>Chặn</button>
+)}
+{isUserBlocked && (
+  <button onClick={() => handleUnblockUser(selectedUser.id)}>Gỡ chặn</button>
+)}
+    </div>
+  </div>
+)}
+     
     </div>
   );
 };

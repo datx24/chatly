@@ -5,7 +5,7 @@ const List = () => {
     return(
         <div className='list'>
             <ChatList />
-            <UserInfo/>
+            <UserInfo />
         </div>
     )
 }

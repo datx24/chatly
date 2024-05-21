@@ -11,6 +11,8 @@ import moment from 'moment';
 import { serverTimestamp } from 'firebase/firestore';
 import GroupInfo from '../Modals/GroupInfo';
 import { getStorage, ref, uploadBytes,getDownloadURL } from 'firebase/storage';
+import { isChatVisible, toggleChatVisibility } from '../list/chatList/chatList'; // Đảm bảo đường dẫn đến file chatList.js là chính xác
+
 
 const Chat = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,12 +34,18 @@ const Chat = () => {
   // Thêm state mới để lưu vị trí của tin nhắn được tìm thấy
   const [foundMessageIndex, setFoundMessageIndex] = useState(-1);
   const [foundMessage, setFoundMessage] = useState(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+
   
 
   const [img, setImg] = useState({
     file: null,
     url: "",
   });
+
+  const handleBlockClick = () => {
+    toggleChatVisibility();
+  };
 
   useEffect(() => {
     if (chatId) {
@@ -323,7 +331,6 @@ useEffect(() => {
 )}
 
 
-
       </div>
           <div className='body-child-right-1-right'>
             <div className='body-child-right-1-right-1'>
@@ -397,45 +404,46 @@ useEffect(() => {
     </div>
   </div>
 ))}
-
-
-
-
         </div>
-        <div className="body-child-right-3">
-          <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435023372_943176447352859_3404519681467152429_n.png?stp=cp0_dst-png&_nc_cat=105&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ax7tvHP5cuoAb7gRu8_&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGT22E-u_KyTYdny-KKElR-gUBf0GUOi2bvAKWoG2UVuQ&oe=6649A9B7' />
-          <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434670771_370909709272930_4174549600339023260_n.png?stp=cp0_dst-png&_nc_cat=111&ccb=1-7&_nc_sid=5f2048&_nc_ohc=mO-iliPj2JUAb5oypl-&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QE1p1HOuZHeGaHOZF-qYBhGXzkGQyfPDOYMaYj20CEfKw&oe=664986E8' />
-          {/* // Thêm sự kiện click vào label để kích hoạt input file */}
-          <label className='button_upImg' htmlFor='file' onClick={(e) => e.stopPropagation()}>
-            <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434576904_898310072068559_3609240181467083327_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=7O6_pmCzJe0Ab7sDYy1&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QF-YJHslMvL-5mQKSg4n8PF-gl6uV6aJ5I1dtknEw9_FQ&oe=66499CDE' />
-          </label>
-          <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
-        </div>
-        <div className="body-child-right-4">
-          <div className='input-wrapper'>
-          <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
-          {/* Hiển thị hình ảnh đã chọn trước khi gửi */}
-          {images.length > 0 && (
-            <div className="selected-images">
-              {images.map((image, index) => (
-                <img key={index} src={URL.createObjectURL(image.file)} alt={`selected-image-${index}`} />
-              ))}
-            </div>
-          )}
-            <input onKeyPress={handleKeyPress} placeholder='Aa' onChange={(e) => setText(e.target.value)} value={text} />
-            <div className='emoji'>
-              <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435276193_1825881391266667_2981408863763185812_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=lB9Cjo4WxooAb7Pv9oT&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGqzBYud1XXiwAe8exZpvV35OCzOYNTi7nGVy-2zGi7hQ&oe=6649B246'
-                onClick={() => setOpen((prev) =>!prev)}
-              />
-              <div className='picker'>
-                <EmojiPicker open={open} onEmojiClick={handleEmoji} />
-              </div>
-            </div>
-            <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434736265_343975395357750_471698361390917180_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=xeg5I6K4zL0Ab4jLnqJ&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QEBBj-YVhtvQJDhH8b2a4CZe6vyx943-DbWOCJkjL_FRw&oe=6649A749'
-              onClick={handleSend}
-            />
-          </div>
-        </div>
+        {isBlocked ? (
+  <div className="block-message">Bạn đã chặn người dùng này, không thể nhắn tin!</div>
+) : (
+  <div className="body-child-right-3">
+    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435023372_943176447352859_3404519681467152429_n.png?stp=cp0_dst-png&_nc_cat=105&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ax7tvHP5cuoAb7gRu8_&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGT22E-u_KyTYdny-KKElR-gUBf0GUOi2bvAKWoG2UVuQ&oe=6649A9B7' />
+    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434670771_370909709272930_4174549600339023260_n.png?stp=cp0_dst-png&_nc_cat=111&ccb=1-7&_nc_sid=5f2048&_nc_ohc=mO-iliPj2JUAb5oypl-&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QE1p1HOuZHeGaHOZF-qYBhGXzkGQyfPDOYMaYj20CEfKw&oe=664986E8' />
+    {/* // Thêm sự kiện click vào label để kích hoạt input file */}
+    <label className='button_upImg' htmlFor='file' onClick={(e) => e.stopPropagation()}>
+      <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434576904_898310072068559_3609240181467083327_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=7O6_pmCzJe0Ab7sDYy1&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QF-YJHslMvL-5mQKSg4n8PF-gl6uV6aJ5I1dtknEw9_FQ&oe=66499CDE' />
+    </label>
+    <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
+  </div>
+)}
+<div className="body-child-right-4">
+  <div className='input-wrapper'>
+    <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
+    {/* Hiển thị hình ảnh đã chọn trước khi gửi */}
+    {images.length > 0 && (
+      <div className="selected-images">
+        {images.map((image, index) => (
+          <img key={index} src={URL.createObjectURL(image.file)} alt={`selected-image-${index}`} />
+        ))}
+      </div>
+    )}
+    <input onKeyPress={handleKeyPress} placeholder='Aa' onChange={(e) => setText(e.target.value)} value={text} />
+    <div className='emoji'>
+      <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435276193_1825881391266667_2981408863763185812_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=lB9Cjo4WxooAb7Pv9oT&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGqzBYud1XXiwAe8exZpvV35OCzOYNTi7nGVy-2zGi7hQ&oe=6649B246'
+        onClick={() => setOpen((prev) =>!prev)}
+      />
+      <div className='picker'>
+        <EmojiPicker open={open} onEmojiClick={handleEmoji} />
+      </div>
+    </div>
+    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434736265_343975395357750_471698361390917180_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=xeg5I6K4zL0Ab4jLnqJ&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QEBBj-YVhtvQJDhH8b2a4CZe6vyx943-DbWOCJkjL_FRw&oe=6649A749'
+      onClick={handleSend}
+    />
+  </div>
+</div>
+
       </div>
     </div>
   );

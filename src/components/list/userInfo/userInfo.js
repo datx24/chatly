@@ -19,11 +19,16 @@ const UserInfo = ({ onInputChange }) => {
   const [chats, setChats] = useState([]);
   const addUserRef = useRef(null);
   const { searchQuery, setSearchQuery, setFilteredUsers } = useSearch(); // Use SearchContext
+  const [addUserVisible, setAddUserVisible] = useState(false); // State để kiểm soát việc hiển thị giao diện AddUser
+
+  const toggleAddUser = () => {
+    setAddUserVisible(prev => !prev);
+  };
 
   const updateChats = (newChat) => {
     setChats(prevChats => [...prevChats, newChat]);
   };
-  
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -146,6 +151,19 @@ const UserInfo = ({ onInputChange }) => {
     setFilteredUsers(filteredUsers); // Update state with filtered users
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (addUserRef.current && !addUserRef.current.contains(event.target)) {
+        setAddUserVisible(false); // Ẩn giao diện AddUser nếu click bên ngoài
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [addUserRef]);
+
   return (
     <div className='userInfo'>
       <div className='user-information'>
@@ -180,24 +198,22 @@ const UserInfo = ({ onInputChange }) => {
             </div>
           </div>
         </div>
-        <div className='input-wrapper'>
+        <div className='input-wrapper' ref={addUserRef}>
           <img
             src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1'
             alt="Search Icon"
+            onClick={toggleAddUser}
           />
+          {/* Hiển thị giao diện AddUser nếu state addUserVisible là true */}
+        {addUserVisible && <AddUser />}
           <input 
             type="text"
             placeholder="Tìm kiếm tên, nhóm..."
             value={searchQuery}
             onChange={handleInputChange}
           />
-          <button onClick={handleAddUserClick}>Add User</button>
-          <div ref={addUserRef}>
-            {addUserMode && <AddUser updateChats={updateChats} />}
-          </div>
         </div>
       </div>
-      {/* Remove the filtered user list here */}
     </div>
   );
 };

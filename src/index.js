@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import Login from '../src/components/login/login';
 import GiaoDienChinh from '../src/components/list/list';
 import App from './App';
+import { SearchProvider } from './components/lib/searchContext'; // Import SearchProvider
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -14,11 +15,12 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
   <BrowserRouter>
+  <SearchProvider>
   <Routes>
     <Route path='/' element={<App />} />
     <Route path='/login' element={<Login />} />
-    
   </Routes>
+  </SearchProvider>
   </BrowserRouter>
   </React.StrictMode>
 );

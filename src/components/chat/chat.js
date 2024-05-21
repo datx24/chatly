@@ -30,11 +30,8 @@ const Chat = () => {
   const [currentIndex, setCurrentIndex] = useState(0); // State to keep track of the current search result index
   const messageRefs = useRef([]); // Create a ref array to store references to message elements
   // Thêm state mới để lưu vị trí của tin nhắn được tìm thấy
-const [foundMessageIndex, setFoundMessageIndex] = useState(-1);
-const [foundMessage, setFoundMessage] = useState(null);
-
-
-
+  const [foundMessageIndex, setFoundMessageIndex] = useState(-1);
+  const [foundMessage, setFoundMessage] = useState(null);
   
 
   const [img, setImg] = useState({
@@ -203,8 +200,23 @@ const [foundMessage, setFoundMessage] = useState(null);
   }, [messages, searchQuery]);
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-  };
+  const query = e.target.value;
+  setSearchQuery(query);
+
+  // Lọc tin nhắn ngay lập tức dựa trên query
+  const filteredMessages = messages.filter(message =>
+    message.text && message.text.toLowerCase().includes(query.toLowerCase())
+  );
+  setSearchResults(filteredMessages);
+  setCurrentIndex(0);
+
+  // Hiển thị tin nhắn đầu tiên tìm thấy nếu có
+  if (filteredMessages.length > 0) {
+    setFoundMessage(filteredMessages[0]);
+  }
+};
+
+  
 
   const handleSearchClick = () => {
     setShowMessageSearch(true);
@@ -263,7 +275,18 @@ const [foundMessage, setFoundMessage] = useState(null);
     }
   }, [foundMessage, showMessageSearch]);
   
-  
+  // Khi searchQuery thay đổi, cập nhật state của tin nhắn được tìm thấy và kiểm tra xem có cần hiển thị giao diện không
+useEffect(() => {
+  if (searchQuery.trim() === '') {
+    // Nếu không có ký tự nào được nhập vào thanh tìm kiếm, ẩn giao diện tin nhắn tìm được
+    setShowMessageSearch(false);
+    setFoundMessage(null);
+  } else if (searchResults.length > 0) {
+    // Hiển thị kết quả tìm kiếm nếu có kết quả và có ký tự được nhập vào thanh tìm kiếm
+    setShowMessageSearch(true);
+    setFoundMessage(searchResults[0]); // Hiển thị tin nhắn đầu tiên trong kết quả tìm kiếm
+  }
+}, [searchQuery, searchResults]);
 
   return (
     <div className='chat'>
@@ -277,17 +300,19 @@ const [foundMessage, setFoundMessage] = useState(null);
             {/* <p>4 người</p> */}
           </div>
           <div className='body-child-right-1-nearright'>
-        <div className='input-wrapper'>
-          <input placeholder='Tìm tin nhắn' onChange={handleSearch} />
-          <img onClick={handleSearchClick} src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1' />
-        </div>
-        {showMessageSearch && searchQuery && searchResults.length > 0 && (
+          <div className='input-wrapper'>
+  <input placeholder='Tìm tin nhắn' onChange={handleSearch} value={searchQuery}/>
+  <img onClick={handleSearchClick} src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1' />
+</div>
+{/* // Trong giao diện, hiển thị tin nhắn được tìm thấy nếu showMessageSearch là true và foundMessage tồn tại */}
+{showMessageSearch && foundMessage && (
   <div className='message-search-container'>
     <div className='message-search'>
       <div className='message-search left'>
-        <span>{searchResults[currentIndex].text}</span>
-        <span>{moment(searchResults[currentIndex].createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
+        <span>{foundMessage.text}</span>
+        <span>{moment(foundMessage.createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
       </div>
+      {/* Nút để điều hướng tới tin nhắn tiếp theo hoặc trước đó */}
       <div className='message-search right'>
         <i onClick={handleNext} className='bx bx-chevron-down'></i>
         <p>{currentIndex + 1}/{searchResults.length}</p>
@@ -296,6 +321,7 @@ const [foundMessage, setFoundMessage] = useState(null);
     </div>
   </div>
 )}
+
 
 
       </div>

@@ -12,6 +12,7 @@ import { serverTimestamp } from 'firebase/firestore';
 import GroupInfo from '../Modals/GroupInfo';
 import { getStorage, ref, uploadBytes,getDownloadURL } from 'firebase/storage';
 import { isChatVisible, toggleChatVisibility } from '../list/chatList/chatList'; // Đảm bảo đường dẫn đến file chatList.js là chính xác
+import { showNotification } from '../chat/notification/notification';
 
 
 const Chat = () => {
@@ -35,7 +36,7 @@ const Chat = () => {
   const [foundMessageIndex, setFoundMessageIndex] = useState(-1);
   const [foundMessage, setFoundMessage] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
-
+  
   
 
   const [img, setImg] = useState({
@@ -295,6 +296,34 @@ useEffect(() => {
     setFoundMessage(searchResults[0]); // Hiển thị tin nhắn đầu tiên trong kết quả tìm kiếm
   }
 }, [searchQuery, searchResults]);
+
+// Trong phần xử lý hiển thị thông báo tin nhắn mới nhất
+if (chat && chat.lastMessage) {
+  showNotification(chat.lastMessage, moment(chat.createdAt.toDate()).format('HH:mm, DD/MM/YYYY'));
+}
+
+useEffect(() => {
+  // Check if there are messages and display the notification with the latest message
+  if (messages.length > 0) {
+    const latestMessage = messages[messages.length - 1]; // Get the latest message
+    let senderName = ""; // Initialize senderName variable
+    if (latestMessage.senderId === currentUser.id) {
+      senderName = currentUser.displayName; // If the current user sent the message, use current user's display name
+    } else {
+      senderName = user.displayName; // If the current user received the message, use other user's display name
+    }
+    const timestamp = moment(latestMessage.createdAt.toDate()).format('HH:mm, DD/MM/YYYY'); // Format the timestamp
+
+    // Combine sender's name, message text, and timestamp for notification message
+    const notificationMessage = `${senderName}: ${latestMessage.text} - ${timestamp}`;
+    
+    showNotification(notificationMessage); // Pass the notification message to showNotification
+  }
+}, [messages]); // Run the effect whenever messages state changes
+
+
+
+
 
   return (
     <div className='chat'>

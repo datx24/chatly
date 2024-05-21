@@ -6,16 +6,17 @@ import { useChatStore } from '../../lib/chatStore';
 import { formatDistanceToNow, differenceInSeconds } from 'date-fns';
 import vi from 'date-fns/locale/vi';
 import '../chatList/chatList.css';
+import { useSearch } from '../../lib/searchContext'; // Import SearchContext
 
-const ChatList = ({ filterUsers }) => {
-  const [chats, setChats] = useState([]);
+const ChatList = () => {
+  const { filteredUsers } = useSearch(); // Use SearchContext
   const [selectedUser, setSelectedUser] = useState(null);
   const [isBackdropVisible, setIsBackdropVisible] = useState(false);
   const { currentUser, isLoading } = useUserStore();
   const { changeChat } = useChatStore();
   const backdropRef = useRef(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isPageVisible, setIsPageVisible] = useState(true);
+  const [chats, setChats] = useState([]);
 
   useEffect(() => {
     if (isLoading || !currentUser?.id) return;
@@ -97,15 +98,6 @@ const ChatList = ({ filterUsers }) => {
       console.error('User data is not available for chat', chat);
     }
   };
-  
-
-  const handleInputChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const filteredUsers = chats.filter(chat =>
-    chat.user.displayName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const updateLastActive = async (userId, isActive = true) => {
     const userDocRef = doc(db, 'users', userId);
@@ -120,16 +112,26 @@ const ChatList = ({ filterUsers }) => {
     }
   };
 
-  
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (backdropRef.current && !backdropRef.current.contains(event.target)) {
+        setIsBackdropVisible(false);
+      }
+    };
+
+    if (isBackdropVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isBackdropVisible]);
 
   return (
     <div className='chatList'>
-      <input
-        type="text"
-        placeholder="Tìm kiếm tên, nhóm..."
-        value={searchQuery}
-        onChange={handleInputChange}
-      />
       {filteredUsers.map((chat) => (
         <div key={chat.chatId}>
           {chat.user ? (
@@ -148,13 +150,13 @@ const ChatList = ({ filterUsers }) => {
           ) : null}
         </div>
       ))}
-      {/* {isBackdropVisible && selectedUser && (
+      {isBackdropVisible && selectedUser && (
         <div className="moon-backdrop" ref={backdropRef}>
           <div className="moon-content">
             <button>Kết bạn</button>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 };

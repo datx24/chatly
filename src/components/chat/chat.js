@@ -36,9 +36,6 @@ const Chat = () => {
   const [foundMessageIndex, setFoundMessageIndex] = useState(-1);
   const [foundMessage, setFoundMessage] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
-  
-  
-
   const [img, setImg] = useState({
     file: null,
     url: "",
@@ -61,8 +58,6 @@ const Chat = () => {
       };
     }
   }, [chatId]); // Only run the effect when chatId changes
-
-  
 
   const toggleForm = () => {
     setAddMode(!addMode);
@@ -241,8 +236,6 @@ const Chat = () => {
     }
   };
   
-  
-
   useEffect(() => {
     // Reset showMessageSearch when search query changes
     setShowMessageSearch(false);
@@ -256,7 +249,6 @@ const Chat = () => {
       setFoundMessage(nextMessage);
     }
   };
-  
 
   // Function to handle moving to the previous search result
   const handlePrevious = () => {
@@ -325,12 +317,6 @@ useEffect(() => {
   }
 }, [messages]); // Run the effect whenever messages state changes
 
-
-
-
-
-
-
   return (
     <div className='chat'>
       <div className='body-child-right'>
@@ -364,7 +350,6 @@ useEffect(() => {
     </div>
   </div>
 )}
-
 
       </div>
           <div className='body-child-right-1-right'>

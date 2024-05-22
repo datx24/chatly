@@ -314,3 +314,12 @@
     color: rgba(148, 161, 164, 1);
     margin-top: 5px;
 }
+
+.selected-file-name{
+    top:-111px;
+    position: relative;
+    font-size: 16px;
+    color: #333; /* Màu sắc của văn bản */
+    margin-top: 5px; /* Khoảng cách giữa phần tử này và các phần tử khác */
+  /* Thêm bất kỳ kiểu dáng tùy chỉnh nào khác bạn muốn áp dụng */
+}

@@ -50,6 +50,7 @@ const Chat = () => {
     file: null,
     url: "",
   });
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleBlockClick = () => {
     toggleChatVisibility();
@@ -114,19 +115,26 @@ const Chat = () => {
   
   const handleSend = async () => {
     try {
-      // Check if there is any text or images to send
-      if (!text.trim() && images.length === 0) return;
-
-      // Array to store URLs of uploaded images
+      // Check if there is any text, images, or files to send
+      if (!text.trim() && images.length === 0 && !selectedFile) return;
+  
+      // Array to store URLs of uploaded images and files
       const imageUrls = [];
-
+      const fileUrls = [];
+  
       // Upload images to storage and get their URLs
       for (const image of images) {
         const imgUrl = await upload(image.file);
         imageUrls.push(imgUrl);
       }
-
-      // Array to store new messages (both text and image messages)
+  
+      // Upload selected file to storage and get its URL
+      if (selectedFile) {
+        const fileUrl = await upload(selectedFile);
+        fileUrls.push(fileUrl);
+      }
+  
+      // Array to store new messages (both text, image, and file messages)
       const newMessages = [];
       
       // Add text message if available
@@ -137,7 +145,7 @@ const Chat = () => {
           createdAt: Timestamp.now(),
         });
       }
-
+  
       // Add image messages if available
       for (const imgUrl of imageUrls) {
         newMessages.push({
@@ -146,42 +154,31 @@ const Chat = () => {
           createdAt: Timestamp.now(),
         });
       }
-
+  
+      // Add file messages if available
+      for (const fileUrl of fileUrls) {
+        newMessages.push({
+          senderId: currentUser.id,
+          file: fileUrl,
+          fileName: selectedFile.name,
+          createdAt: Timestamp.now(),
+        });
+      }
+  
       // Update Firestore with the new messages
       await updateDoc(doc(db, "chats", chatId), {
         messages: arrayUnion(...newMessages),
       });
-
-      // Update the chat state with the new messages
-      // Update the chat state with the new messages only if they don't already exist
-      setLatestTextMessage(newMessages.find((message) => message.text)); // Set the latest text message
-
-      // Clear input fields and image state
+  
+      // Clear input fields and image/file state
       setText("");
       setImages([]);
-
-      // Update userChats in Firestore
-      const userChatsRef = doc(db, "usersChat", currentUser.id);
-      const userChatsSnapShot = await getDoc(userChatsRef);
-
-      if (userChatsSnapShot.exists()) {
-        const userChatsData = userChatsSnapShot.data();
-        const chatIndex = userChatsData.chats.findIndex((c) => c.chatId === chatId);
-
-        if (chatIndex !== -1) {
-          userChatsData.chats[chatIndex].lastMessage = text;
-          userChatsData.chats[chatIndex].isSeen = currentUser.id === user.id;
-          userChatsData.chats[chatIndex].createdAt = Timestamp.now(); // Set timestamp here
-
-          await updateDoc(userChatsRef, {
-            chats: userChatsData.chats,
-          });
-        }
-      }
+      setSelectedFile(null);
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
+  
 
   
   const handleHideGroupInfo = () => {
@@ -327,6 +324,32 @@ useEffect(() => {
   }
 }, [messages]); // Run the effect whenever messages state changes
 
+const handleFile = async (e) => {
+  try {
+    // Kiểm tra xem có tệp nào được chọn không
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0]; // Lấy tệp đầu tiên từ danh sách tệp được chọn
+      const storageRef = ref(storage, `files/${file.name}`); // Tạo tham chiếu lưu trữ đến tệp trên Firebase Storage
+      await uploadBytes(storageRef, file); // Tải tệp lên Firebase Storage
+      const fileUrl = await getDownloadURL(storageRef); // Lấy URL của tệp đã tải lên
+
+      // Cập nhật trạng thái của tệp được chọn
+      setSelectedFile(file);
+    }
+  } catch (error) {
+    console.error("Error uploading file:", error);
+  }
+};
+
+
+
+const openFilePicker = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx'; // Các định dạng tệp được chấp nhận
+  input.onchange = (e) => handleFile(e); // Gọi hàm handleFile khi tập tin được chọn
+  input.click(); // Kích hoạt sự kiện click trên phần tử input
+};
   return (
     <div className='chat'>
       <div className='body-child-right'>
@@ -399,39 +422,28 @@ useEffect(() => {
           )}
 
 {chat?.messages?.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()).map((message, index) => (
-  <div
-    className={message.senderId === currentUser.id ? 'Message own' : 'Message'}
-    key={index}
-    ref={(el) => (messageRefs.current[index] = el)} // Assign ref to each message element
-  >
-    {/* Display the avatar only if the message is from the other user */}
-    {message.senderId !== currentUser.id && (
-      <img src={user.photoURL} alt="Avatar" />
-    )}
+  <div className={message.senderId === currentUser.id ? 'Message own' : 'Message'} key={index} ref={(el) => (messageRefs.current[index] = el)}>
+    {message.senderId !== currentUser.id && <img src={user.photoURL} alt="Avatar" />}
     <div className='texts'>
-      {/* Display the text message if present */}
-      {message.text && !message.img && (
+      {message.text && !message.img && !message.file && (
         <div className="message-text-wrapper">
-          {message.senderId === currentUser.id && <i class='bx bxs-share share-icon left' ></i>}
+          {message.senderId === currentUser.id && <i className='bx bxs-share share-icon left'></i>}
           <p>{message.text}</p>
-          {message.senderId !== currentUser.id && <i class='bx bxs-share bx-flip-horizontal share-icon right' ></i>}
+          {message.senderId !== currentUser.id && <i className='bx bxs-share bx-flip-horizontal share-icon right'></i>}
         </div>
       )}
-      {/* Display the image if present */}
-      {message.img && !message.text && (
-        <img src={message.img} alt={`image-${index}`} />
+      {message.img && !message.text && !message.file && <img src={message.img} alt={`image-${index}`} />}
+      {message.file && !message.text && !message.img && (
+        <div>
+          <p><a href={message.file} download={message.fileName}>{message.fileName}</a></p>
+        </div>
       )}
-      {/* Display both text and image if present */}
       {message.text && message.img && (
         <div>
-          {/* Check if the previous message is not an image from the same sender */}
-          {index === 0 || (index > 0 && chat.messages[index - 1].senderId !== currentUser.id && !chat.messages[index - 1].img) ? (
-            <p>{message.text}</p>
-          ) : null}
+          {index === 0 || (index > 0 && chat.messages[index - 1].senderId !== currentUser.id && !chat.messages[index - 1].img) && <p>{message.text}</p>}
           <img src={message.img} alt={`image-${index}`} />
         </div>
       )}
-      {/* Display the timestamp */}
       {message.createdAt && message.createdAt instanceof Timestamp ? (
         <span>{moment(message.createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
       ) : (
@@ -441,12 +453,22 @@ useEffect(() => {
   </div>
 ))}
 
+{/* Hiển thị tên tệp đã chọn trước khi gửi */}
+{selectedFile && <p>{selectedFile.name}</p>}
+  {images.length > 0 && (
+    <div className="selected-images">
+      {images.map((image, index) => (
+        <img key={index} src={URL.createObjectURL(image.file)} alt={`selected-image-${index}`} />
+      ))}
+    </div>
+  )}
         </div>
         {isBlocked ? (
   <div className="block-message">Bạn đã chặn người dùng này, không thể nhắn tin!</div>
 ) : (
   <div className="body-child-right-3">
-    <img src={File}/>
+    <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
+    <img src={File} onClick={openFilePicker}/>
     <img src={Voice} />
     {/* // Thêm sự kiện click vào label để kích hoạt input file */}
     <label className='button_upImg' htmlFor='file' onClick={(e) => e.stopPropagation()}>
@@ -480,7 +502,7 @@ useEffect(() => {
     />
   </div>
 </div>
-
+{selectedFile && <p className='selected-file-name'>{selectedFile.name}</p>}
       </div>
     </div>
   );

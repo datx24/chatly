@@ -1,6 +1,6 @@
 import '../chat/chat.css';
 import EmojiPicker from 'emoji-picker-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import AddUser from '../addUser/addUser';
 import { arrayUnion, doc, onSnapshot, updateDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebaseConfig';
@@ -11,6 +11,9 @@ import moment from 'moment';
 import { serverTimestamp } from 'firebase/firestore';
 import GroupInfo from '../Modals/GroupInfo';
 import { getStorage, ref, uploadBytes,getDownloadURL } from 'firebase/storage';
+import { isChatVisible, toggleChatVisibility } from '../list/chatList/chatList'; // Đảm bảo đường dẫn đến file chatList.js là chính xác
+import { showNotification } from '../chat/notification/notification';
+
 
 const Chat = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,12 +28,25 @@ const Chat = () => {
   const [images, setImages] = useState([]); // Add this state to store multiple images
   const [latestTextMessage, setLatestTextMessage] = useState(null); // State để lưu trữ tin nhắn văn bản mới nhất
   const storage = getStorage();
+  const [messages, setMessages] = useState([]);
+  const [showMessageSearch, setShowMessageSearch] = useState(false); // State to control the display of message search
+  const [currentIndex, setCurrentIndex] = useState(0); // State to keep track of the current search result index
+  const messageRefs = useRef([]); // Create a ref array to store references to message elements
+  // Thêm state mới để lưu vị trí của tin nhắn được tìm thấy
+  const [foundMessageIndex, setFoundMessageIndex] = useState(-1);
+  const [foundMessage, setFoundMessage] = useState(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+  
   
 
   const [img, setImg] = useState({
     file: null,
     url: "",
   });
+
+  const handleBlockClick = () => {
+    toggleChatVisibility();
+  };
 
   useEffect(() => {
     if (chatId) {
@@ -163,18 +179,6 @@ const Chat = () => {
   };
 
   
-   // Hàm lọc tin nhắn chỉ hiển thị tin nhắn văn bản
-  const filterTextMessages = (messages) => {
-    return messages.filter((message) => {
-      return message.text && !message.img; // Chỉ lọc ra những tin nhắn có văn bản và không có ảnh
-    });
-  };
-
-  
-
-
-
-  
   const handleHideGroupInfo = () => {
     setShowGroupInfo(false);
   };
@@ -189,21 +193,137 @@ const Chat = () => {
     }
   };
 
-  const filterMessages = (searchQuery) => {
-    return chat?.messages?.filter((message) => {
-      return message.text.toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'chats', chatId), (snapshot) => {
+      setMessages(snapshot.data()?.messages || []);
     });
-  };
 
-  const updateSearchResults = (searchQuery) => {
-    const results = filterMessages(searchQuery);
-    setSearchResults(results);
-  };
+    return () => unsubscribe();
+  }, [chatId]);
+
+  useEffect(() => {
+    const filteredMessages = messages.filter(message =>
+      message.text && message.text.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setSearchResults(filteredMessages);
+  }, [messages, searchQuery]);
 
   const handleSearch = (e) => {
-    const searchQuery = e.target.value;
-    updateSearchResults(searchQuery);
+  const query = e.target.value;
+  setSearchQuery(query);
+
+  // Lọc tin nhắn ngay lập tức dựa trên query
+  const filteredMessages = messages.filter(message =>
+    message.text && message.text.toLowerCase().includes(query.toLowerCase())
+  );
+  setSearchResults(filteredMessages);
+  setCurrentIndex(0);
+
+  // Hiển thị tin nhắn đầu tiên tìm thấy nếu có
+  if (filteredMessages.length > 0) {
+    setFoundMessage(filteredMessages[0]);
+  }
+};
+
+  
+
+  const handleSearchClick = () => {
+    setShowMessageSearch(true);
+    setCurrentIndex(0);
+  
+    const foundMessage = searchResults.find(message =>
+      message.text && message.text.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  
+    if (foundMessage) {
+      setFoundMessage(foundMessage);
+      setCurrentIndex(searchResults.indexOf(foundMessage));
+    }
   };
+  
+  
+
+  useEffect(() => {
+    // Reset showMessageSearch when search query changes
+    setShowMessageSearch(false);
+  }, [searchQuery]);
+
+  // Function to handle moving to the next search result
+  const handleNext = () => {
+    if (currentIndex < searchResults.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      const nextMessage = searchResults[currentIndex + 1];
+      setFoundMessage(nextMessage);
+    }
+  };
+  
+
+  // Function to handle moving to the previous search result
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      const previousMessage = searchResults[currentIndex - 1];
+      setFoundMessage(previousMessage);
+    }
+  };
+  
+  useEffect(() => {
+    if (showMessageSearch && foundMessage) {
+      const foundIndex = messages.findIndex(message => message === foundMessage);
+      if (foundIndex !== -1 && messageRefs.current[foundIndex]) {
+        messageRefs.current[foundIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  
+        // Add highlight class to the current message
+        messageRefs.current[foundIndex].classList.add('highlight');
+  
+        // Remove highlight class after a delay
+        setTimeout(() => {
+          messageRefs.current[foundIndex].classList.remove('highlight');
+        }, 2000);
+      }
+    }
+  }, [foundMessage, showMessageSearch]);
+  
+  // Khi searchQuery thay đổi, cập nhật state của tin nhắn được tìm thấy và kiểm tra xem có cần hiển thị giao diện không
+useEffect(() => {
+  if (searchQuery.trim() === '') {
+    // Nếu không có ký tự nào được nhập vào thanh tìm kiếm, ẩn giao diện tin nhắn tìm được
+    setShowMessageSearch(false);
+    setFoundMessage(null);
+  } else if (searchResults.length > 0) {
+    // Hiển thị kết quả tìm kiếm nếu có kết quả và có ký tự được nhập vào thanh tìm kiếm
+    setShowMessageSearch(true);
+    setFoundMessage(searchResults[0]); // Hiển thị tin nhắn đầu tiên trong kết quả tìm kiếm
+  }
+}, [searchQuery, searchResults]);
+
+// Trong phần xử lý hiển thị thông báo tin nhắn mới nhất
+if (chat && chat.lastMessage) {
+  showNotification(chat.lastMessage, moment(chat.createdAt.toDate()).format('HH:mm, DD/MM/YYYY'));
+}
+
+useEffect(() => {
+  // Check if there are messages and display the notification with the latest message
+  if (messages.length > 0) {
+    const latestMessage = messages[messages.length - 1]; // Get the latest message
+    let senderName = ""; // Initialize senderName variable
+    if (latestMessage.senderId === currentUser.id) {
+      senderName = currentUser.displayName; // If the current user sent the message, use current user's display name
+    } else {
+      senderName = user.displayName; // If the current user received the message, use other user's display name
+    }
+    const timestamp = moment(latestMessage.createdAt.toDate()).format('HH:mm, DD/MM/YYYY'); // Format the timestamp
+
+    // Combine sender's name, message text, and timestamp for notification message
+    const notificationMessage = `${senderName}: ${latestMessage.text} - ${timestamp}`;
+    
+    showNotification(notificationMessage); // Pass the notification message to showNotification
+  }
+}, [messages]); // Run the effect whenever messages state changes
+
+
+
+
 
   return (
     <div className='chat'>
@@ -217,20 +337,30 @@ const Chat = () => {
             {/* <p>4 người</p> */}
           </div>
           <div className='body-child-right-1-nearright'>
-            <div className='input-wrapper'>
-              <input placeholder='Tìm tin nhắn' />
-              <img value={searchQuery}
-              onChange={handleSearch} src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1'>     
-              </img>
-            </div>
-            {searchQuery && (
-              <div>
-                {filterMessages(searchQuery).map((message) => (
-                  <div key={message.id}>{message.text}</div>
-                ))}
-              </div>
-            )}
-          </div>
+          <div className='input-wrapper'>
+  <input placeholder='Tìm tin nhắn' onChange={handleSearch} value={searchQuery}/>
+  <img onClick={handleSearchClick} src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1' />
+</div>
+{/* // Trong giao diện, hiển thị tin nhắn được tìm thấy nếu showMessageSearch là true và foundMessage tồn tại */}
+{showMessageSearch && foundMessage && (
+  <div className='message-search-container'>
+    <div className='message-search'>
+      <div className='message-search left'>
+        <span>{foundMessage.text}</span>
+        <span>{moment(foundMessage.createdAt.toDate()).format('HH:mm, DD/MM/YYYY')}</span>
+      </div>
+      {/* Nút để điều hướng tới tin nhắn tiếp theo hoặc trước đó */}
+      <div className='message-search right'>
+        <i onClick={handleNext} className='bx bx-chevron-down'></i>
+        <p>{currentIndex + 1}/{searchResults.length}</p>
+        <i onClick={handlePrevious} className='bx bx-chevron-up'></i>
+      </div>
+    </div>
+  </div>
+)}
+
+
+      </div>
           <div className='body-child-right-1-right'>
             <div className='body-child-right-1-right-1'>
               <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435010966_1355459908470106_7966605552557510732_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=l9rES8sMrUoAb6XUBHD&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGScK0m1FN1R57AcWdTb4-CKG9__zFqfrdq26XHne2jhg&oe=66496EDF'
@@ -268,7 +398,11 @@ const Chat = () => {
           )}
 
 {chat?.messages?.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()).map((message, index) => (
-  <div className={message.senderId === currentUser.id ? 'Message own' : 'Message'} key={index}>
+  <div
+    className={message.senderId === currentUser.id ? 'Message own' : 'Message'}
+    key={index}
+    ref={(el) => (messageRefs.current[index] = el)} // Assign ref to each message element
+  >
     {/* Display the avatar for both sender and receiver */}
     {message.senderId && (
       <img src={message.senderId === currentUser.id ? currentUser.photoURL : user.photoURL} alt="Avatar" />
@@ -299,43 +433,46 @@ const Chat = () => {
     </div>
   </div>
 ))}
+        </div>
+        {isBlocked ? (
+  <div className="block-message">Bạn đã chặn người dùng này, không thể nhắn tin!</div>
+) : (
+  <div className="body-child-right-3">
+    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435023372_943176447352859_3404519681467152429_n.png?stp=cp0_dst-png&_nc_cat=105&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ax7tvHP5cuoAb7gRu8_&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGT22E-u_KyTYdny-KKElR-gUBf0GUOi2bvAKWoG2UVuQ&oe=6649A9B7' />
+    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434670771_370909709272930_4174549600339023260_n.png?stp=cp0_dst-png&_nc_cat=111&ccb=1-7&_nc_sid=5f2048&_nc_ohc=mO-iliPj2JUAb5oypl-&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QE1p1HOuZHeGaHOZF-qYBhGXzkGQyfPDOYMaYj20CEfKw&oe=664986E8' />
+    {/* // Thêm sự kiện click vào label để kích hoạt input file */}
+    <label className='button_upImg' htmlFor='file' onClick={(e) => e.stopPropagation()}>
+      <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434576904_898310072068559_3609240181467083327_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=7O6_pmCzJe0Ab7sDYy1&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QF-YJHslMvL-5mQKSg4n8PF-gl6uV6aJ5I1dtknEw9_FQ&oe=66499CDE' />
+    </label>
+    <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
+  </div>
+)}
+<div className="body-child-right-4">
+  <div className='input-wrapper'>
+    <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
+    {/* Hiển thị hình ảnh đã chọn trước khi gửi */}
+    {images.length > 0 && (
+      <div className="selected-images">
+        {images.map((image, index) => (
+          <img key={index} src={URL.createObjectURL(image.file)} alt={`selected-image-${index}`} />
+        ))}
+      </div>
+    )}
+    <input onKeyPress={handleKeyPress} placeholder='Aa' onChange={(e) => setText(e.target.value)} value={text} />
+    <div className='emoji'>
+      <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435276193_1825881391266667_2981408863763185812_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=lB9Cjo4WxooAb7Pv9oT&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGqzBYud1XXiwAe8exZpvV35OCzOYNTi7nGVy-2zGi7hQ&oe=6649B246'
+        onClick={() => setOpen((prev) =>!prev)}
+      />
+      <div className='picker'>
+        <EmojiPicker open={open} onEmojiClick={handleEmoji} />
+      </div>
+    </div>
+    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434736265_343975395357750_471698361390917180_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=xeg5I6K4zL0Ab4jLnqJ&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QEBBj-YVhtvQJDhH8b2a4CZe6vyx943-DbWOCJkjL_FRw&oe=6649A749'
+      onClick={handleSend}
+    />
+  </div>
+</div>
 
-
-        </div>
-        <div className="body-child-right-3">
-          <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435023372_943176447352859_3404519681467152429_n.png?stp=cp0_dst-png&_nc_cat=105&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ax7tvHP5cuoAb7gRu8_&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGT22E-u_KyTYdny-KKElR-gUBf0GUOi2bvAKWoG2UVuQ&oe=6649A9B7' />
-          <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434670771_370909709272930_4174549600339023260_n.png?stp=cp0_dst-png&_nc_cat=111&ccb=1-7&_nc_sid=5f2048&_nc_ohc=mO-iliPj2JUAb5oypl-&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QE1p1HOuZHeGaHOZF-qYBhGXzkGQyfPDOYMaYj20CEfKw&oe=664986E8' />
-          {/* // Thêm sự kiện click vào label để kích hoạt input file */}
-          <label className='button_upImg' htmlFor='file' onClick={(e) => e.stopPropagation()}>
-            <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434576904_898310072068559_3609240181467083327_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=7O6_pmCzJe0Ab7sDYy1&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QF-YJHslMvL-5mQKSg4n8PF-gl6uV6aJ5I1dtknEw9_FQ&oe=66499CDE' />
-          </label>
-          <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
-        </div>
-        <div className="body-child-right-4">
-          <div className='input-wrapper'>
-          <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
-          {/* Hiển thị hình ảnh đã chọn trước khi gửi */}
-          {images.length > 0 && (
-            <div className="selected-images">
-              {images.map((image, index) => (
-                <img key={index} src={URL.createObjectURL(image.file)} alt={`selected-image-${index}`} />
-              ))}
-            </div>
-          )}
-            <input onKeyPress={handleKeyPress} placeholder='Aa' onChange={(e) => setText(e.target.value)} value={text} />
-            <div className='emoji'>
-              <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435276193_1825881391266667_2981408863763185812_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=lB9Cjo4WxooAb7Pv9oT&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGqzBYud1XXiwAe8exZpvV35OCzOYNTi7nGVy-2zGi7hQ&oe=6649B246'
-                onClick={() => setOpen((prev) =>!prev)}
-              />
-              <div className='picker'>
-                <EmojiPicker open={open} onEmojiClick={handleEmoji} />
-              </div>
-            </div>
-            <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434736265_343975395357750_471698361390917180_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=xeg5I6K4zL0Ab4jLnqJ&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QEBBj-YVhtvQJDhH8b2a4CZe6vyx943-DbWOCJkjL_FRw&oe=6649A749'
-              onClick={handleSend}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@
     overflow: scroll;
     gap: none;
     .Message{
-        max-width: 70%;
+        max-width: 50%;
         display: flex;
         &.own{
             align-self: flex-end;
@@ -91,6 +91,7 @@
 }
 
 .body-child-right-4{
+    display: flex;
     position: relative;
     height: 40px;
     /* background-color:rgb(240, 11, 183); */
@@ -101,6 +102,13 @@
     flex: 1;
     display: flex;
     justify-content: center;
+    align-items: center;
+    img{
+        height: 75px;
+        width: 75px;
+        border-radius: 50%;
+        border: 2px solid rgba(35, 140, 159, 1);
+    }
 }
 
 .body-child-right-1-nearleft{
@@ -167,7 +175,7 @@
 
 .body-child-right-1-nearright  .input-wrapper img{
     position: absolute;
-    margin-left: 28.8%;
+    margin-left: 88.8%;
     height: 46px;
 }
 
@@ -178,11 +186,11 @@
     align-items: center;
 }
 
-.body-child-right-3 img{
+.body-child-right-3 img {
+    position: relative;
+    left: 26px;
     margin-top: 8px;
     width: 24px;
-    margin-left: 2.5%;
-    margin-right: -2%;
     height: 24px;
 }
 
@@ -191,7 +199,7 @@
     margin-top: 1%;
     display: flex;
     justify-content: left;
-    height: 40%;
+    height: 50%;
     border: none;
     border-radius: 0%;
     width: 90%;
@@ -224,4 +232,101 @@
     }
 }
 
+.input-wrapper .selected-images{
+    left: -32px;
+    top: -118px;
+    position: absolute;
+    display: inline-flex;
+    width: max-content;
+    height: 70px;
+    border: 1px solid black;
+    flex-direction: row;
+    img{
+        left: 11px;
+        display: flex;
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        position: relative;
+        top: 10px;
+        border-radius: 20%;
+        margin-right: 5px;
+    }
+}
 
+.body-child-right-2 {
+    height: 522px;
+    flex: 6 1;
+    padding: 20px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-color: rgba(50, 75, 80, 0.61);
+    border-width: 1px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: auto;
+    gap: none;
+}
+
+.body-child-right-2::-webkit-scrollbar {
+    width: 10px;
+}
+
+.body-child-right-2::-webkit-scrollbar-track {
+    background-color: none;
+}
+
+.body-child-right-2::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 100, 0.61);
+    border-radius: 5px;
+}
+
+.body-child-right{
+    height: 700px;
+    position: relative;
+    margin-bottom: none;
+}
+.message-search-container{
+    top:-4px;
+    display: flex;
+    position: relative;
+    height: 40px;
+    justify-content: center;
+    border: 1px solid black;
+    box-shadow: 0px 4px 2px 0px rgba(0, 0, 0, 0.08);
+        .message-search {
+            width: 480px;
+            display: flex;
+            flex-direction: row;
+            position: relative;
+            padding: 5px; /* Khoảng cách nội dung với viền */
+            margin-bottom: 5px; /* Khoảng cách giữa các tin nhắn */
+        }
+}
+
+.message-search .left {
+    flex: 4;
+}
+
+.message-search .right {
+    flex: 1;
+    i{
+        object-fit: cover;
+        padding: 4px;
+    }
+}
+
+  
+  .message-search span {
+    font-size: 16px; /* Cỡ chữ */
+    color: #333; /* Màu chữ */
+    margin-right: 20px; /* Khoảng cách giữa hai span */
+    font-family: 'Roboto',sans-serif;
+  }
+  
+/* Add this CSS to highlight the message */
+.highlight {
+    background-color: yellow; /* Highlight color */
+    transition: background-color 0.5s ease;
+  }

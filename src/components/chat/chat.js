@@ -13,6 +13,16 @@ import GroupInfo from '../Modals/GroupInfo';
 import { getStorage, ref, uploadBytes,getDownloadURL } from 'firebase/storage';
 import { isChatVisible, toggleChatVisibility } from '../list/chatList/chatList'; // Đảm bảo đường dẫn đến file chatList.js là chính xác
 import { showNotification } from '../chat/notification/notification';
+import Search from '../../images/bx-search-alt.svg.png'
+import UserPlus from "../../images/bx-user-plus.svg.png"
+import Phone from "../../images/bx-phone-call.svg.png"
+import Setting from "../../images/bx-cog.svg.png"
+import File from "../../images/Gửi file.png"
+import Voice from "../../images/Gửi voice.png"
+import Picture from "../../images/video.png"
+import Emoji from "../../images/Gửi emoji.png"
+import Send from "../../images/Gửi tin nhắn.png"
+import Share from "../../images/Vector.png"
 
 
 const Chat = () => {
@@ -331,7 +341,7 @@ useEffect(() => {
           <div className='body-child-right-1-nearright'>
           <div className='input-wrapper'>
   <input placeholder='Tìm tin nhắn' onChange={handleSearch} value={searchQuery}/>
-  <img onClick={handleSearchClick} src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1' />
+  <img onClick={handleSearchClick} src={Search} />
 </div>
 {/* // Trong giao diện, hiển thị tin nhắn được tìm thấy nếu showMessageSearch là true và foundMessage tồn tại */}
 {showMessageSearch && foundMessage && (
@@ -354,17 +364,17 @@ useEffect(() => {
       </div>
           <div className='body-child-right-1-right'>
             <div className='body-child-right-1-right-1'>
-              <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435010966_1355459908470106_7966605552557510732_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=l9rES8sMrUoAb6XUBHD&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGScK0m1FN1R57AcWdTb4-CKG9__zFqfrdq26XHne2jhg&oe=66496EDF'
+              <img src={UserPlus}
                 onClick={toggleForm}
                 style={imgStyles}
               />
               {addMode && <AddUser />}
             </div>
             <div className='body-child-right-1-right-1'>
-              <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435094136_796649892385209_7657773689440718791_n.png?stp=cp0_dst-png&_nc_cat=109&ccb=1-7&_nc_sid=5f2048&_nc_ohc=dWbqxzEAxLwAb79obEC&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QFYcy3aD6K-26Pku9A2tZGtKlxk88HuqrmdpN4-wMMfag&oe=664954B6' />
+              <img src={Phone} />
             </div>
             <div className='body-child-right-1-right-1'>
-              <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435088666_7899570106754160_2558583056158969005_n.png?stp=cp0_dst-png&_nc_cat=108&ccb=1-7&_nc_sid=5f2048&_nc_ohc=xs5UROEKopwAb4_cSkU&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QHJ0Uem7lNyO1xGzCXlkq3MoQPnhB7B5q4Fa6OWkG1ONw&oe=66497F39'
+              <img src={Setting}
                 onClick={handleShowGroupInfo} />
               {showGroupInfo? (
                 <GroupInfo onHide={handleHideGroupInfo} onShow={handleShowGroupInfo} />
@@ -394,13 +404,19 @@ useEffect(() => {
     key={index}
     ref={(el) => (messageRefs.current[index] = el)} // Assign ref to each message element
   >
-    {/* Display the avatar for both sender and receiver */}
-    {message.senderId && (
-      <img src={message.senderId === currentUser.id ? currentUser.photoURL : user.photoURL} alt="Avatar" />
+    {/* Display the avatar only if the message is from the other user */}
+    {message.senderId !== currentUser.id && (
+      <img src={user.photoURL} alt="Avatar" />
     )}
     <div className='texts'>
       {/* Display the text message if present */}
-      {message.text && !message.img && <p>{message.text}</p>}
+      {message.text && !message.img && (
+        <div className="message-text-wrapper">
+          {message.senderId === currentUser.id && <i class='bx bxs-share share-icon left' ></i>}
+          <p>{message.text}</p>
+          {message.senderId !== currentUser.id && <i class='bx bxs-share bx-flip-horizontal share-icon right' ></i>}
+        </div>
+      )}
       {/* Display the image if present */}
       {message.img && !message.text && (
         <img src={message.img} alt={`image-${index}`} />
@@ -424,16 +440,17 @@ useEffect(() => {
     </div>
   </div>
 ))}
+
         </div>
         {isBlocked ? (
   <div className="block-message">Bạn đã chặn người dùng này, không thể nhắn tin!</div>
 ) : (
   <div className="body-child-right-3">
-    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435023372_943176447352859_3404519681467152429_n.png?stp=cp0_dst-png&_nc_cat=105&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ax7tvHP5cuoAb7gRu8_&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGT22E-u_KyTYdny-KKElR-gUBf0GUOi2bvAKWoG2UVuQ&oe=6649A9B7' />
-    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434670771_370909709272930_4174549600339023260_n.png?stp=cp0_dst-png&_nc_cat=111&ccb=1-7&_nc_sid=5f2048&_nc_ohc=mO-iliPj2JUAb5oypl-&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QE1p1HOuZHeGaHOZF-qYBhGXzkGQyfPDOYMaYj20CEfKw&oe=664986E8' />
+    <img src={File}/>
+    <img src={Voice} />
     {/* // Thêm sự kiện click vào label để kích hoạt input file */}
     <label className='button_upImg' htmlFor='file' onClick={(e) => e.stopPropagation()}>
-      <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434576904_898310072068559_3609240181467083327_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=7O6_pmCzJe0Ab7sDYy1&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QF-YJHslMvL-5mQKSg4n8PF-gl6uV6aJ5I1dtknEw9_FQ&oe=66499CDE' />
+      <img src={Picture}/>
     </label>
     <input type="file" id="file" style={{ display: "none" }} onChange={handleImg} />
   </div>
@@ -451,14 +468,14 @@ useEffect(() => {
     )}
     <input onKeyPress={handleKeyPress} placeholder='Aa' onChange={(e) => setText(e.target.value)} value={text} />
     <div className='emoji'>
-      <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/435276193_1825881391266667_2981408863763185812_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=lB9Cjo4WxooAb7Pv9oT&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QGqzBYud1XXiwAe8exZpvV35OCzOYNTi7nGVy-2zGi7hQ&oe=6649B246'
+      <img src={Emoji}
         onClick={() => setOpen((prev) =>!prev)}
       />
       <div className='picker'>
         <EmojiPicker open={open} onEmojiClick={handleEmoji} />
       </div>
     </div>
-    <img src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434736265_343975395357750_471698361390917180_n.png?stp=cp0_dst-png&_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=xeg5I6K4zL0Ab4jLnqJ&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QEBBj-YVhtvQJDhH8b2a4CZe6vyx943-DbWOCJkjL_FRw&oe=6649A749'
+    <img src={Send}
       onClick={handleSend}
     />
   </div>

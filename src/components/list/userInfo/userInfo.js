@@ -9,6 +9,8 @@ import Edit from '../userInfo/edit/edit';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebaseConfig';
 import { useSearch } from '../../lib/searchContext'; // Import SearchContext
+import Bell from '../../../images/bxs-bell-ring.svg.png'
+import Search from '../../../images/bx-search-alt.svg.png'
 
 const UserInfo = ({ onInputChange }) => {
   const [userDisplayName, setUserDisplayName] = useState('');
@@ -190,7 +192,7 @@ const UserInfo = ({ onInputChange }) => {
             <div className="user-icon">
               <img
                 className='icon-bell'
-                src='https://scontent.xx.fbcdn.net/v/t1.15752-9/434660649_1527472634468950_1775548599709619413_n.png?stp=cp0_dst-png&_nc_cat=110&ccb=1-7&_nc_sid=5f2048&_nc_ohc=6Grqe9_wciMAb7Fpr3y&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&oh=03_Q7cD1QFbLpAD6NLC9MBOuXSEQcykKM0X19wutQGdmx7F06_wvg&oe=6648115B'
+                src={Bell}
                 alt="Bell Icon"
               />
               <span onClick={handleEditClick}>...</span>
@@ -200,7 +202,7 @@ const UserInfo = ({ onInputChange }) => {
         </div>
         <div className='input-wrapper' ref={addUserRef}>
           <img
-            src='https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.15752-9/434533985_713553907379990_3944476913737347889_n.png?stp=cp0_dst-png&_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=fmPNSwUVY7gAb5Gh2BW&_nc_ht=scontent.fsgn5-12.fna&oh=03_Q7cD1QFGPPKTEWBpyAaSAS5ZEJrxds8jp_DL_dDLoYy4SVGZQg&oe=66480AC1'
+            src={Search}
             alt="Search Icon"
             onClick={toggleAddUser}
           />

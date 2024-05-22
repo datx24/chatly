@@ -16,12 +16,12 @@ body{
     left: -1%;
     max-width: 1543px;
     width: 110%;
-    height: 100%;
+    height: 800px;
     background-color: white;
     /* border: 1px solid black; */
     display: flex;
     flex-direction: row;
-    max-height: 720px;
+    max-height: 715px;
     position: absolute;
 }
 

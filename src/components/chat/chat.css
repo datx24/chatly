@@ -203,6 +203,7 @@
     border: none;
     border-radius: 0%;
     width: 90%;
+    top:3px
 }
 
 .body-child-right-4 .input-wrapper input{
@@ -255,7 +256,7 @@
 }
 
 .body-child-right-2 {
-    height: 525px;
+    height: 512px;
     flex: 6 1;
     padding: 20px;
     border-top-style: solid;

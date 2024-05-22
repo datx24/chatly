@@ -306,20 +306,26 @@ useEffect(() => {
   // Check if there are messages and display the notification with the latest message
   if (messages.length > 0) {
     const latestMessage = messages[messages.length - 1]; // Get the latest message
-    let senderName = ""; // Initialize senderName variable
-    if (latestMessage.senderId === currentUser.id) {
-      senderName = currentUser.displayName; // If the current user sent the message, use current user's display name
-    } else {
-      senderName = user.displayName; // If the current user received the message, use other user's display name
-    }
-    const timestamp = moment(latestMessage.createdAt.toDate()).format('HH:mm, DD/MM/YYYY'); // Format the timestamp
-
-    // Combine sender's name, message text, and timestamp for notification message
-    const notificationMessage = `${senderName}: ${latestMessage.text} - ${timestamp}`;
     
-    showNotification(notificationMessage); // Pass the notification message to showNotification
+    // If the current user is the sender, do not show the notification
+    if (latestMessage.senderId !== currentUser.id) {
+      let senderName = user.displayName; // If the current user received the message, use other user's display name
+      const timestamp = moment(latestMessage.createdAt.toDate()).format('HH:mm, DD/MM/YYYY'); // Format the timestamp
+
+      // Combine sender's name, message text, and timestamp for notification message
+      let notificationMessage = "";
+      if (latestMessage.text) {
+        notificationMessage = `${senderName}: ${latestMessage.text} - ${timestamp}`;
+      } else if (latestMessage.img) {
+        notificationMessage = `${senderName}: đã gửi một ảnh - ${timestamp}`;
+      }
+
+      showNotification(notificationMessage); // Pass the notification message to showNotification
+    }
   }
 }, [messages]); // Run the effect whenever messages state changes
+
+
 
 
 

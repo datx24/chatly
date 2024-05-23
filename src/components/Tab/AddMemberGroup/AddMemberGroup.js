@@ -16,7 +16,9 @@ export const TabStyled = styled.div`
     border: 2px solid black;
     border-radius: 20px;
     position: relative;
-    top: -73%;
+    top: -89%;
+    right: 5%;
+    background:#fff;
     
     .bodyTab{
         padding: 0px 16px;
@@ -101,34 +103,34 @@ export default function AddMemberGroup({ onClose }){
       };
 
     return(
-        <div>
-            <TabStyled>
-                <Form>
-                    <Header/>
-                    <button 
-                        onClick={onClose}
-                        className='closeTab'
-                    >X</button>
-                    <div className="bodyTab">
-                        <div className="title">
-                            <h3 className="titleText">Thêm thành viên</h3>
-                            <div className="searchBar">
-                                <i class='bx bx-search-alt icon' style = {{fontSize:"18px", color: "#324B50"}}></i>
-                                <input className="searchInput" placeholder ="Tên người dùng"></input>
-                            </div>
+        <TabStyled>
+            
+            <Form>
+                <Header/>
+                <button 
+                    onClick={onClose}
+                    className='closeTab'
+                >X</button>
+                <div className="bodyTab">
+                    <div className="title">
+                        <h3 className="titleText">Thêm thành viên</h3>
+                        <div className="searchBar">
+                            <i class='bx bx-search-alt icon' style = {{fontSize:"18px", color: "#324B50"}}></i>
+                            <input className="searchInput" placeholder ="Tên người dùng"></input>
                         </div>
-                        <ListAddConditon
-                            groupId={groupId}
-                            groupMembers={groupMembers}
-                            onSelectUsers={handleSelectedUsers}
-                        />
                     </div>
-                    <div style={{display: "flex", justifyContent: "center"}}>
-                    <button onClick={handleClick}>Thêm</button>
+                    <ListAddConditon
+                        groupId={groupId}
+                        groupMembers={groupMembers}
+                        onSelectUsers={handleSelectedUsers}
+                    />
+                </div>
+                <div style={{display: "flex", justifyContent: "center"}}>
+                <button onClick={handleClick}>Thêm</button>
 
-                    </div>
-                </Form>
-            </TabStyled>
-        </div>
+                </div>
+            </Form>
+            
+        </TabStyled>
     )
 }

@@ -19,6 +19,17 @@ export default function UserInfor(){
     const [userDisplayName, setUserDisplayName] = useState('')
     const [userImgUrl, setUserImgUrl] = useState('')
 
+    const handleLogout = async () => {
+      try {
+        await signOut(auth)
+        localStorage.clear()
+        window.location.reload()
+      } catch (error) {
+        console.error('Error logging out:', error)
+        // Handle error properly, e.g. display an error message to the user
+      }
+    }
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
           if (user) {
@@ -45,7 +56,7 @@ export default function UserInfor(){
                 <Avatar src={userImgUrl}/>
                 <Typography.Text className='username'>{userDisplayName}</Typography.Text>
             </div>
-            <Button ghost>Đăng Xuất</Button>
+            <Button onClick={handleLogout} ghost>Đăng Xuất</Button>
         </ WrapperStyled>
     )
 }

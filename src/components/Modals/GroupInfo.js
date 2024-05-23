@@ -12,6 +12,8 @@ import { ArrowRightOutlined } from '@ant-design/icons';
 import getGroupMembers from "../lib/getGroupMembers";
 import { useUserStore } from "../lib/userStore";
 import deleteMember from "../lib/deleteMember";
+import updateNameGroup from "../lib/updateNameGroup";
+import updateGroupImage from "../lib/updateGroupImage";
 const GroupInfoStyled = styled.div`
     ${'' /* position:absolute; */}
     position: relative;
@@ -56,7 +58,6 @@ const GroupInfoStyled = styled.div`
         height: 5px;
         background-color: #dbe3e4;
         position: absolute;
-        left: 0px;
         margin-top: 5px;
     }
     .group_actions h3{
@@ -120,9 +121,7 @@ const GroupInfoStyled = styled.div`
         text-align: left;
         color: #324b50;
         padding-left: 20px;
-        line-height: 0px;
-        margin-top: 35px;
-        margin-bottom: 25px;
+        line-height: 45px;
     }
     .group_actions_1 .exit-chat{
         display: flex;
@@ -175,7 +174,6 @@ const GroupInfoStyled = styled.div`
         height: 5px;
         background-color: #dbe3e4;
         position: absolute;
-        left: 0px
     }
     .group_actions_2 ul li{
         list-style: none;
@@ -201,24 +199,6 @@ const GroupInfoStyled = styled.div`
         display:contents;
         position:absolute;
         height:91px;
-        cursor: pointer;
-    }
-    .closeTab{
-        border: none;
-        background: none;
-        font-family: "Rubik", sans-serif;
-        font-weight: 900;
-        color: white;
-        font-size: 20px;
-        position: absolute;
-        right: 10px;
-        top: 5px;
-        
-    }
-    .closeTab:hover{
-        border: none;
-        background: none;
-        color: white;
         cursor: pointer;
     }
 `
@@ -286,7 +266,8 @@ const GroupInfo = ({ onClose }) => {
   const handleFileInputChange = (event) => {
     const file = event.target.files[0]
     if(file){
-      handleImageUpload(file)
+      console.log(file);
+      updateGroupImage(selectedGroup.GroupId,file);
     }
   }
 
@@ -296,8 +277,11 @@ const GroupInfo = ({ onClose }) => {
   }
 
   const handleSaveClick = () => {
-    setGroupName(newGroupName)
-    setIsEditing(false)
+    setGroupName(newGroupName);
+    
+    
+    updateNameGroup(selectedGroup.GroupId,newGroupName);
+    setIsEditing(false);
   }
 
   const handleCancelClick = () => {
@@ -345,7 +329,10 @@ const GroupInfo = ({ onClose }) => {
         // Xử lý lỗi ở đây
       });
   }, []);
-  console.log('this is current user', currentUser.id)
+  
+  const isLeader = currentUser.id === selectedGroup.leader;
+  console.log(isLeader);
+
     return (
      
       <GroupInfoStyled>
@@ -431,13 +418,18 @@ const GroupInfo = ({ onClose }) => {
           <h4>Quyền riêng tư và hỗ trợ</h4>
           <ul>
             <li className="group_actions_1">
-              <button 
-              className="exit-chat"
-              onClick={handleOutGroup}
-              >
+              <button className="exit-chat">
                 <i className="bx bx-exit" />
                 <p>Rời khỏi đoạn chat</p>
               </button>
+            </li>
+            <li className="group_actions_1">
+              {isLeader && (
+                <button className="exit-chat">
+                  <i className='bx bx-trash'></i>
+                  <p>Giải tán nhóm</p>
+                </button>
+               )}
             </li>
           </ul>
         </div>

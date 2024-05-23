@@ -2,8 +2,9 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, db } from "./firebaseConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useState } from "react";
-const createGroup = async (nameGroup, file, members) => {
+const createGroup = async (nameGroup, file, members, leader) => {
   try {
+    // 
     const storageRef = ref(storage, `images/${nameGroup}.png`);
   
     const uploadTask = uploadBytesResumable(storageRef, file);
@@ -18,8 +19,8 @@ const createGroup = async (nameGroup, file, members) => {
       nameGroup,
       urlImg: url, // Lưu link ảnh vào trường urlImg
       GroupId: "", // Trường GroupId được khởi tạo rỗng
-      members
-      // Thêm myId nếu cần
+      members,
+      leader
     });
     
     // Gán giá trị newGroupDoc.id cho trường GroupId

@@ -16,9 +16,10 @@ import ChatList from './components/list/chatList/chatList'
 import ChatRom from './components/ChatRoom/indexx'
 import UserInfo from './components/list/userInfo/userInfo'
 import { db } from "./components/lib/firebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc } from "firebase/firestore";
 import GroupInfo from './components/Modals/GroupInfo';
 import { imageFile } from './components/Modals/DisplayImage';
+import updateGroupImage from './components/lib/updateGroupImage'
 const App = () => {
   const [isLoading, setIsLoading] = useState(true); // Add loading state to display loading message
   const { currentUser, fetchUserInfo } = useUserStore();
@@ -63,10 +64,9 @@ const App = () => {
       </div>
     )
   }
- 
- 
-  console.log(currentUser.id);
-
+// const GroupID = "2aD122QPnzoxu8ENbdJI";
+// const imgUrl = "https://firebasestorage.googleapis.com/v0/b/login-e1c8b.appspot.com/o/images%2FNatureLove.png?alt=media&token=e2656057-c6be-498e-81db-ecb696db2f4c";
+// updateGroupImage(GroupID,imgUrl);
 
   return (
     // <AppProvider>

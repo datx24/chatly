@@ -5,6 +5,7 @@ import ListAdd from '../Tab/AddMemberGroup/ListAdd';
 import createGroup from '../lib/groups';
 import DisplayImage,{imageFile} from './DisplayImage';
 import InputText, { nameGroup } from './InputText';
+import { useUserStore } from '../lib/userStore';
 const AddGroupStyled = styled.div`
     width: 471px;
     height: 582px;
@@ -116,7 +117,7 @@ const AddGroupStyled = styled.div`
     }
 `
 export default function AddGroup({ onClose}){
-   
+    const { currentUser} = useUserStore();
     const [image, setImage] = useState(null);
     const [selectedUsers, setSelectedUsers] = useState([]);
 
@@ -127,7 +128,7 @@ export default function AddGroup({ onClose}){
 
     const handleCreateGroup = () => {
 
-    createGroup(nameGroup, imageFile, selectedUsers);
+    createGroup(nameGroup, imageFile, selectedUsers, currentUser.id);
     };
 
     

@@ -1,16 +1,34 @@
-import React from "react";
-import Header from '../Tab/Components/TabHeader';
+import React, { useState }  from "react";
+import Header from "../Modals/Header";
+import AddMemberGroup from "../Tab/AddMemberGroup/AddMemberGroup";
+import styled from "styled-components";
+const GroupInforStyle = styled.div`
+ position: relative;
+ top: -73%;
+ height: 582px;
+`
+
 function GroupInfor(props) {
-  // Add a check for props.listMember before rendering
-  if (!props.listMember) return null;
+  const [isAddGroupVisible, setIsAddGroupVisible] = useState(false);
+
+  const handleAddGroupToggle = () => {
+    setIsAddGroupVisible(!isAddGroupVisible);
+  };
+
+  const arr = Object.keys(props.member).map(key => props.member[key]);
+
   return (
-    <div className="card m-auto" style={{top: "-313px", right: "471px", width: "28rem", borderRadius: "20px", border: "2px solid #333" }}>
-      <Header/>
+    <GroupInforStyle className="card m-auto" style={{ width: "471px", borderRadius: "20px", border: "2px solid #333" }}>
+     <Header/>
+     <button 
+        onClick={props.onClose}
+        className='closeTab'
+      >X</button>
       <div className="d-flex justify-content-evenly align-content-center m-3">
-        <img src={props.imgLogo} className="card-img-top w-auto" alt="..." />
+        <img src={props.ImgGroup} style={{width: '25%', border: '2px solid #238C9F', 'borderRadius':'100%' }} alt="..." />
         <div className="d-flex flex-column pe-3">
-          <h5 className="d-block mb-0 mt-3 me-2" style={{ marginLeft: "8px" }}>{props.nameGroup}</h5>
-          <p className="d-block" style={{ marginLeft: "8px" }}>{props.descGroup }</p>
+          <h5 className="d-block mb-0 mt-3 me-2" style={{ marginLeft: "8px" }}>{props.groupName}</h5>
+          <p className="d-block" style={{ marginLeft: "8px" }}>Đây là nhóm của tôi</p>
         </div>
       </div>
       <div className="m-1" style={{ border: "2px solid #ccc" }}></div>
@@ -31,19 +49,20 @@ function GroupInfor(props) {
           </div>
         </div>
         <div className="overflow-auto p-0 bg-body-tertiary" style={{ width: "auto", maxHeight: "300px" }}>
-
-          {props.listMember.map(member => (
-            <div className="d-flex"  key={member.nameMember}>
-              <div className="m-1" style={{ width: "46px", height: "46px" }}><img src={member.imgMember} style={{ width: "100%" }} alt="..." /></div>
-              <div className="m-1 w-75"><h6 style={{ lineHeight: "46px" }}>{member.nameMember}</h6></div>
+          
+          {arr.map(member1 => (
+            <div className="d-flex"  key={member1.id}>
+              <div className="m-1" style={{ width: "46px", height: "46px" }}><img src={member1.photoURL} style={{ width: "100%" }} alt="..." /></div>
+              <div className="m-1 w-75"><h6 style={{ lineHeight: "46px" }}>{member1.displayName}</h6></div>
               <div className="m-3"><a className="link-underline-dark" style={{ width: "10%", cursor: "pointer" }}>...</a></div>
             </div>
           ))}
         </div>
+        <button onClick={handleAddGroupToggle}>Thêm thành viên</button>
+        {isAddGroupVisible && <AddMemberGroup onClose={handleAddGroupToggle} />}
       </div>
-      <button onClick={props.onHide}>Quay lại</button>
-    </div>
-    
+    </GroupInforStyle>
+
   );
 }
 

@@ -16,6 +16,8 @@ const Login = ({ setUser, onSignIn }) => {
   const [messagePass, setMessagePass] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState(''); 
   const [error, setError] = useState('');
+  const [agree, setAgree] = useState(false);
+
 
   useEffect(() => {
     setValue(localStorage.getItem('email'));
@@ -274,7 +276,7 @@ const Login = ({ setUser, onSignIn }) => {
                       <label>Nhập lại mật khẩu</label>
                     </div>
                     <div className='remember-forgot'>
-                      <label><input type='checkbox'/>Tôi đồng ý với điều khoản và dịch vụ</label>
+                      <label><input type='checkbox' checked = {agree} onChange={(e) => {setAgree(e.target.checked)}}/>Tôi đồng ý với điều khoản và dịch vụ</label>
                     </div>
                     <div style={{width: '100%', display: 'flex', justifyContent: 'center'}}>
                       <button type='submit' className='log-btn'>Đăng ký</button>

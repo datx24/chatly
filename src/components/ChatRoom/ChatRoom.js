@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import { useUserStore } from '../lib/userStore';
-import moment from 'moment';
+import File from "../../images/Gửi file.png"
+import Voice from "../../images/Gửi voice.png"
+import Emoji from "../../images/Gửi emoji.png"
+import Send from "../../images/Gửi tin nhắn.png"
+import "../ChatRoom/ChatRoom.css"
 // Initialize Firebase
 const firebaseConfig = {
    apiKey: "AIzaSyC8fGaj2jFZjiMBq1rYBbHZjZjAbtmh-8M",
@@ -60,14 +64,6 @@ function ChatRoom({ groupId }) {
       }
     }
   };
-  function formatTime(timestamp) {
-    const date = moment(timestamp);
-    const hoursVN = (date.hour() + 7) % 24;
-    const ampm = hoursVN >= 12 ? 'PM' : 'AM';
-    const formattedHours = hoursVN % 12 || 12;
-    const formattedMinutes = date.minute().toString().padStart(2, '0');
-    return `${formattedHours}:${formattedMinutes} ${ampm}`;
-  }
   return (
     <div className="chat-container">
     <div className="chat-messages">
@@ -76,19 +72,16 @@ function ChatRoom({ groupId }) {
           <div className="message-container">
             <div className="message-user-container">
               <div className="message-header">
+                
+               
                 {message.senderPhotoURL && (
                   <img
                     src={message.senderPhotoURL}
                     alt={message.sender}
                     className="message-avatar"
                   />
-                )}
+                )} 
                 <div className="message-user">{message.sender}:</div>
-                <div className="message-time" style={{
-                  fontSize: '12px',
-                  color: '#888',
-                  marginLeft: '8px'
-                }}>{formatTime(message.timestamp)}</div>
               </div>
               <div className={`message-text ${message.sender === currentUser.displayName ? 'my-message' : ''}`}>{message.text}</div>
             </div>
@@ -96,8 +89,14 @@ function ChatRoom({ groupId }) {
         </div>
       ))}
     </div>
-    <div className="chat-input">
-      <input
+    <div className="body-child-right-3" >
+    <input type="file" id="file" style={{ display: "none" }}  />
+    <img src={File}/>
+    <img src={Voice} />
+    {/* // Thêm sự kiện click vào label để kích hoạt input file */}
+  </div>
+    {/* <div className="chat-input"> */}
+      {/* <input
         type="text"
         value={newMessage}
         onChange={(e) => setNewMessage(e.target.value)}
@@ -107,12 +106,46 @@ function ChatRoom({ groupId }) {
           }
         }}
         className="chat-input-field"
-      />
-      <button onClick={handleSendMessage} className="chat-send-button">
+      /> */}
+      {/* <button className="chat-send-button">
         Send
-      </button>
+      </button> */}
+      
+      <div className="body-child-right-4" style={{backgroundColor:'#fff'}}>
+  <div className='input-wrapper'>
+    <input type="file" id="file" style={{ display: "none" }}/>
+    <input
+        type="text"
+        placeholder='Aa'
+        value={newMessage}
+        onChange={(e) => setNewMessage(e.target.value)}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') {
+            handleSendMessage();
+          }
+        }}
+        // className="chat-input-field"
+      />
+    <div className='emoji'>
+      <img src={Emoji}
+      />
+      <div className='picker'>
+       
+      </div>
     </div>
+    <img src={Send}
+      onClick={handleSendMessage}
+    />
   </div>
+  </div>
+
+
+
+
+      {/* //  onClick={handleSendMessage} */}
+      
+    </div>
+  // </div>
   );
 }
 
